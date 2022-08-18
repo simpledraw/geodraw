@@ -83,6 +83,7 @@ import { Provider, useAtom } from "jotai";
 import { jotaiStore, useAtomWithInitialValue } from "../jotai";
 import { reconcileElements } from "./collab/reconciliation";
 import { parseLibraryTokensFromUrl, useHandleLibrary } from "../data/library";
+import { ControlPanel } from "./geodraw";
 
 polyfill();
 window.EXCALIDRAW_THROTTLE_RENDER = true;
@@ -657,10 +658,10 @@ const ExcalidrawWrapper = () => {
         );
       }
       return (
-        <>
+        <div style={{ border: "1px solid gray", width: "100%" }}>
           {renderEncryptedIcon()}
           {renderLanguageList()}
-        </>
+        </div>
       );
     },
     [langCode],
@@ -683,9 +684,11 @@ const ExcalidrawWrapper = () => {
     localStorage.setItem(STORAGE_KEYS.LOCAL_STORAGE_LIBRARY, serializedItems);
   };
 
+  const renderSnapshots = () => <ControlPanel excalidrawAPI={excalidrawAPI} />;
+
   return (
     <div
-      style={{ height: "100%" }}
+      style={{ height: "80%" }}
       className={clsx("excalidraw-app", {
         "is-collaborating": isCollaborating,
       })}
@@ -736,6 +739,7 @@ const ExcalidrawWrapper = () => {
           onClose={() => setErrorMessage("")}
         />
       )}
+      {renderSnapshots()}
     </div>
   );
 };
