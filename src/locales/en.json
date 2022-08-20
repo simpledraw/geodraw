@@ -27,6 +27,7 @@
     "strokeStyle_dotted": "Dotted",
     "sloppiness": "Sloppiness",
     "opacity": "Opacity",
+    "class": "Class Name",
     "textAlign": "Text align",
     "edges": "Edges",
     "sharp": "Sharp",

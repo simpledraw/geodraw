@@ -185,6 +185,7 @@ export const SelectedShapeActions = ({
           </div>
         </fieldset>
       )}
+      {renderAction("changeClass")}
     </div>
   );
 };

@@ -287,6 +287,12 @@ const ExcalidrawWrapper = () => {
     getInitialLibraryItems: getLibraryItemsFromStorage,
   });
 
+  (window as any).API = {
+    excalidrawAPI,
+    state: () => excalidrawAPI?.getAppState(),
+    elements: () => excalidrawAPI?.getSceneElements(),
+  };
+
   useEffect(() => {
     if (!collabAPI || !excalidrawAPI) {
       return;

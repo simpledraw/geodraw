@@ -2390,6 +2390,7 @@ class App extends React.Component<AppProps, AppState> {
           strokeStyle: this.state.currentItemStrokeStyle,
           roughness: this.state.currentItemRoughness,
           opacity: this.state.currentItemOpacity,
+          className: this.state.currentItemClassName,
           strokeSharpness: this.state.currentItemStrokeSharpness,
           text: "",
           fontSize: this.state.currentItemFontSize,
@@ -2403,7 +2404,6 @@ class App extends React.Component<AppProps, AppState> {
           containerId: container?.id ?? undefined,
           groupIds: container?.groupIds ?? [],
           locked: false,
-          className: "",
         });
 
     this.setState({ editingElement: element });
