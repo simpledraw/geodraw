@@ -85,6 +85,7 @@ const _newElementBase = <T extends ExcalidrawElement>(
     updated: getUpdatedTimestamp(),
     link,
     locked,
+    className: "",
   };
   return element;
 };
@@ -145,6 +146,7 @@ export const newTextElement = (
       baseline: metrics.baseline,
       containerId: opts.containerId || null,
       originalText: opts.text,
+      className: "",
     },
     {},
   );

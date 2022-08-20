@@ -138,6 +138,7 @@ export class API {
           type: type as "rectangle" | "diamond" | "ellipse",
           width,
           height,
+          className: "",
           ...base,
         });
         break;
@@ -150,6 +151,7 @@ export class API {
           textAlign: rest.textAlign ?? appState.currentItemTextAlign,
           verticalAlign: rest.verticalAlign ?? DEFAULT_VERTICAL_ALIGN,
           containerId: rest.containerId ?? undefined,
+          className: "",
         });
         element.width = width;
         element.height = height;
@@ -159,6 +161,7 @@ export class API {
           type: type as "freedraw",
           simulatePressure: true,
           ...base,
+          className: "",
         });
         break;
       case "arrow":
@@ -171,6 +174,7 @@ export class API {
           startArrowhead: null,
           endArrowhead: null,
           points: rest.points ?? [],
+          className: "",
         });
         break;
     }
