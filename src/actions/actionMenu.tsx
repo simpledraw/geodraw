@@ -6,6 +6,7 @@ import { register } from "./register";
 import { allowFullScreen, exitFullScreen, isFullScreen } from "../utils";
 import { CODES, KEYS } from "../keys";
 import { HelpIcon } from "../components/HelpIcon";
+import { EditIcon } from "../components/EditIcon";
 
 export const actionToggleCanvasMenu = register({
   name: "toggleCanvasMenu",
@@ -87,6 +88,24 @@ export const actionShortcuts = register({
   },
   PanelComponent: ({ updateData }) => (
     <HelpIcon title={t("helpDialog.title")} onClick={updateData} />
+  ),
+  keyTest: (event) => event.key === KEYS.QUESTION_MARK,
+});
+
+export const actionStartResolve = register({
+  name: "toggleStartResolve",
+  trackEvent: { category: "menu", action: "toggleStartResolve" },
+  perform: (_elements, appState, _, { focusContainer }) => {
+    return {
+      appState: {
+        ...appState,
+        viewModeEnabled: !appState.viewModeEnabled,
+      },
+      commitToHistory: true,
+    };
+  },
+  PanelComponent: ({ updateData }) => (
+    <EditIcon title={t("helpDialog.title")} onClick={updateData} />
   ),
   keyTest: (event) => event.key === KEYS.QUESTION_MARK,
 });
