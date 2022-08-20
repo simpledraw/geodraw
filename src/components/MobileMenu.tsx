@@ -94,7 +94,7 @@ export const MobileMenu = ({
                   title={t("toolBar.lock")}
                   isMobile
                 />
-                <LibraryButton
+                {/* <LibraryButton
                   appState={appState}
                   setAppState={setAppState}
                   isMobile
@@ -105,7 +105,7 @@ export const MobileMenu = ({
                   title={t("toolBar.penMode")}
                   isMobile
                   penDetected={appState.penDetected}
-                />
+                /> */}
               </Stack.Row>
               {libraryMenu}
             </Stack.Col>

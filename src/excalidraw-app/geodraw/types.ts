@@ -19,3 +19,9 @@ export interface DrawState {
   elements: ExcalidrawElement[];
   appState: AppState;
 }
+
+export type DbImperativeAPI = {
+  getQuestion: Function;
+  getAnswer: Function;
+  getCheckPoints: Function;
+};

@@ -323,12 +323,12 @@ const LayerUI = ({
                       title={t("toolBar.penMode")}
                       penDetected={appState.penDetected}
                     />
-                    <LockButton
+                    {/* <LockButton
                       zenModeEnabled={appState.zenModeEnabled}
                       checked={appState.activeTool.locked}
                       onChange={() => onLockToggle()}
                       title={t("toolBar.lock")}
-                    />
+                    /> */}
                     <Island
                       padding={1}
                       className={clsx("App-toolbar", {
@@ -355,10 +355,10 @@ const LayerUI = ({
                         />
                       </Stack.Row>
                     </Island>
-                    <LibraryButton
+                    {/* <LibraryButton
                       appState={appState}
                       setAppState={setAppState}
-                    />
+                    /> */}
                   </Stack.Row>
                 </Stack.Col>
               )}
@@ -462,6 +462,7 @@ const LayerUI = ({
             },
           )}
         >
+          {actionManager.renderAction("toggleStartResolve")}
           {actionManager.renderAction("toggleShortcuts")}
         </div>
         <button
@@ -531,7 +532,7 @@ const LayerUI = ({
         appState={appState}
         elements={elements}
         actionManager={actionManager}
-        libraryMenu={libraryMenu}
+        libraryMenu={null}
         renderJSONExportDialog={renderJSONExportDialog}
         renderImageExportDialog={renderImageExportDialog}
         setAppState={setAppState}

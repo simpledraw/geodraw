@@ -83,7 +83,8 @@ import { Provider, useAtom } from "jotai";
 import { jotaiStore, useAtomWithInitialValue } from "../jotai";
 import { reconcileElements } from "./collab/reconciliation";
 import { parseLibraryTokensFromUrl, useHandleLibrary } from "../data/library";
-import { ControlPanel } from "./geodraw";
+import { ControlPanel, DB, Resolver } from "./geodraw";
+import { DbImperativeAPI } from "./geodraw/types";
 
 polyfill();
 window.EXCALIDRAW_THROTTLE_RENDER = true;
@@ -250,6 +251,7 @@ const PlusAppLinkJSX = (
 
 const ExcalidrawWrapper = () => {
   const [errorMessage, setErrorMessage] = useState("");
+  const [isViewModeEnabled, setViewModeEnabled] = useState<boolean>(true);
   let currentLangCode = languageDetector.detect() || defaultLang.code;
   if (Array.isArray(currentLangCode)) {
     currentLangCode = currentLangCode[0];
@@ -277,11 +279,15 @@ const ExcalidrawWrapper = () => {
   const [excalidrawAPI, excalidrawRefCallback] =
     useCallbackRefState<ExcalidrawImperativeAPI>();
 
+  const [dbAPI, dbRefCallback] = useState<DbImperativeAPI | null>(null);
+
   const [collabAPI] = useAtom(collabAPIAtom);
   const [, setCollabDialogShown] = useAtom(collabDialogShownAtom);
   const [isCollaborating] = useAtomWithInitialValue(isCollaboratingAtom, () => {
     return isCollaborationLink(window.location.href);
   });
+
+  (window as any).api = { excalidrawAPI, dbAPI };
 
   useHandleLibrary({
     excalidrawAPI,
@@ -579,26 +585,23 @@ const ExcalidrawWrapper = () => {
     }
   };
 
-  const renderTopRightUI = useCallback(
-    (isMobile: boolean, appState: AppState) => {
-      if (isMobile) {
-        return null;
-      }
-
-      return (
-        <div
-          style={{
-            width: isExcalidrawPlusSignedUser ? "21ch" : "23ch",
-            fontSize: "0.7em",
-            textAlign: "center",
-          }}
-        >
-          {isExcalidrawPlusSignedUser ? PlusAppLinkJSX : PlusLPLinkJSX}
-        </div>
-      );
-    },
-    [],
-  );
+  const renderTopRightUI = () => {
+    return (
+      <div
+        style={{
+          width: isExcalidrawPlusSignedUser ? "21ch" : "23ch",
+          fontSize: "0.7em",
+          textAlign: "center",
+        }}
+      >
+        <Resolver
+          setViewMode={setViewModeEnabled}
+          excalidrawAPI={excalidrawAPI}
+          dbAPI={dbAPI}
+        />
+      </div>
+    );
+  };
 
   const renderFooter = useCallback(
     (isMobile: boolean) => {
@@ -658,10 +661,10 @@ const ExcalidrawWrapper = () => {
         );
       }
       return (
-        <div style={{ border: "1px solid gray", width: "100%" }}>
+        <>
           {renderEncryptedIcon()}
           {renderLanguageList()}
-        </div>
+        </>
       );
     },
     [langCode],
@@ -684,7 +687,10 @@ const ExcalidrawWrapper = () => {
     localStorage.setItem(STORAGE_KEYS.LOCAL_STORAGE_LIBRARY, serializedItems);
   };
 
-  const renderSnapshots = () => <ControlPanel excalidrawAPI={excalidrawAPI} />;
+  const renderSols = () => (
+    <ControlPanel excalidrawAPI={excalidrawAPI} dbAPI={dbAPI} />
+  );
+  const renderDb = () => <DB onAPIReady={dbRefCallback} />;
 
   return (
     <div
@@ -697,34 +703,19 @@ const ExcalidrawWrapper = () => {
         ref={excalidrawRefCallback}
         onChange={onChange}
         initialData={initialStatePromiseRef.current.promise}
-        onCollabButtonClick={() => setCollabDialogShown(true)}
-        isCollaborating={isCollaborating}
+        isCollaborating={false}
         onPointerUpdate={collabAPI?.onPointerUpdate}
         UIOptions={{
           canvasActions: {
-            export: {
-              onExportToBackend,
-              renderCustomUI: (elements, appState, files) => {
-                return (
-                  <ExportToExcalidrawPlus
-                    elements={elements}
-                    appState={appState}
-                    files={files}
-                    onError={(error) => {
-                      excalidrawAPI?.updateScene({
-                        appState: {
-                          errorMessage: error.message,
-                        },
-                      });
-                    }}
-                  />
-                );
-              },
-            },
+            changeViewBackgroundColor: false,
+            clearCanvas: false,
+            export: false,
+            saveToActiveFile: false,
+            theme: false,
+            saveAsImage: false,
+            loadScene: false,
           },
         }}
-        renderTopRightUI={renderTopRightUI}
-        renderFooter={renderFooter}
         langCode={langCode}
         renderCustomStats={renderCustomStats}
         detectScroll={false}
@@ -739,7 +730,8 @@ const ExcalidrawWrapper = () => {
           onClose={() => setErrorMessage("")}
         />
       )}
-      {renderSnapshots()}
+      {renderSols()}
+      {renderDb()}
     </div>
   );
 };

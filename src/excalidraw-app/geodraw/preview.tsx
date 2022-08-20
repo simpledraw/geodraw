@@ -107,7 +107,7 @@ export function CheckpointPreview({
     >
       <div
         style={{
-          width: "150px",
+          width: "100px",
           height: "100px",
           display: "flex",
           flexDirection: "row",

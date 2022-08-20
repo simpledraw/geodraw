@@ -1,3 +1,5 @@
 import { ControlPanel } from "./controlpanel";
+import { Resolver } from "./resolver";
+import { DB } from "./db";
 
-export { ControlPanel };
+export { DB, ControlPanel, Resolver };
