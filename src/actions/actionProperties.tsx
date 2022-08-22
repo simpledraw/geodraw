@@ -520,6 +520,53 @@ export const actionChangeOpacity = register({
   ),
 });
 
+export const actionChangeClass = register({
+  name: "changeClass",
+  trackEvent: false,
+  perform: (elements, appState, value) => {
+    return {
+      elements: changeProperty(
+        elements,
+        appState,
+        (el) =>
+          newElementWith(el, {
+            className: value,
+          }),
+        true,
+      ),
+      appState: { ...appState, currentItemClassName: value },
+      commitToHistory: true,
+    };
+  },
+  PanelComponent: ({ elements, appState, updateData }) => (
+    <label className="control-label">
+      {t("labels.class") || "class"}
+      {getSelectedElements(elements, appState).length === 1 ? (
+        <input
+          type="text"
+          onChange={(event) => updateData(event.target.value)}
+          value={
+            getFormValue(
+              elements,
+              appState,
+              (element) => element.className,
+              appState.currentItemClassName,
+            ) ?? undefined
+          }
+        />
+      ) : (
+        <div>
+          {elements
+            .filter((e) => e.className)
+            .map((e) => (
+              <span>{e.className} &nbsp; </span>
+            ))}
+        </div>
+      )}
+    </label>
+  ),
+});
+
 export const actionChangeFontSize = register({
   name: "changeFontSize",
   trackEvent: false,

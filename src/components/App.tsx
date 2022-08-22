@@ -1581,6 +1581,7 @@ class App extends React.Component<AppProps, AppState> {
       textAlign: this.state.currentItemTextAlign,
       verticalAlign: DEFAULT_VERTICAL_ALIGN,
       locked: false,
+      className: "",
     });
 
     this.scene.replaceAllElements([
@@ -2389,6 +2390,7 @@ class App extends React.Component<AppProps, AppState> {
           strokeStyle: this.state.currentItemStrokeStyle,
           roughness: this.state.currentItemRoughness,
           opacity: this.state.currentItemOpacity,
+          className: this.state.currentItemClassName,
           strokeSharpness: this.state.currentItemStrokeSharpness,
           text: "",
           fontSize: this.state.currentItemFontSize,
@@ -3851,6 +3853,7 @@ class App extends React.Component<AppProps, AppState> {
       strokeSharpness: this.state.currentItemLinearStrokeSharpness,
       simulatePressure: event.pressure === 0.5,
       locked: false,
+      className: "",
     });
 
     this.setState((prevState) => ({
@@ -3907,6 +3910,7 @@ class App extends React.Component<AppProps, AppState> {
       opacity: this.state.currentItemOpacity,
       strokeSharpness: this.state.currentItemLinearStrokeSharpness,
       locked: false,
+      className: "",
     });
 
     return element;
@@ -3995,6 +3999,7 @@ class App extends React.Component<AppProps, AppState> {
         startArrowhead,
         endArrowhead,
         locked: false,
+        className: "",
       });
       this.setState((prevState) => ({
         selectedElementIds: {
@@ -4044,6 +4049,7 @@ class App extends React.Component<AppProps, AppState> {
       opacity: this.state.currentItemOpacity,
       strokeSharpness: this.state.currentItemStrokeSharpness,
       locked: false,
+      className: "",
     });
 
     if (element.type === "selection") {
