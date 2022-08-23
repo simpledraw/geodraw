@@ -14,12 +14,12 @@ export {
   actionChangeFillStyle,
   actionChangeSloppiness,
   actionChangeOpacity,
-  actionChangeClass,
   actionChangeFontSize,
   actionChangeFontFamily,
   actionChangeTextAlign,
   actionChangeVerticalAlign,
 } from "./actionProperties";
+export { actionChangeClass } from "./actionProgrammable";
 
 export {
   actionChangeViewBackgroundColor,
