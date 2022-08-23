@@ -263,6 +263,7 @@ import {
   isLocalLink,
 } from "../element/Hyperlink";
 import { shouldShowBoundingBox } from "../element/transformHandles";
+import { select } from "../programmable/selector";
 
 const deviceContextInitialValue = {
   isSmScreen: false,
@@ -393,6 +394,11 @@ class App extends React.Component<AppProps, AppState> {
         setActiveTool: this.setActiveTool,
         setCursor: this.setCursor,
         resetCursor: this.resetCursor,
+        $: (selector: string) =>
+          select(
+            selector,
+            this.getSceneElementsIncludingDeleted(),
+          ) as ExcalidrawElement[],
       } as const;
       if (typeof excalidrawRef === "function") {
         excalidrawRef(api);
