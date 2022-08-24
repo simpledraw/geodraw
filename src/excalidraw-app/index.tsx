@@ -24,6 +24,7 @@ import {
   Excalidraw,
   defaultLang,
   languages,
+  getSceneVersion,
 } from "../packages/excalidraw/index";
 import {
   AppState,
@@ -83,6 +84,7 @@ import { Provider, useAtom } from "jotai";
 import { jotaiStore, useAtomWithInitialValue } from "../jotai";
 import { reconcileElements } from "./collab/reconciliation";
 import { parseLibraryTokensFromUrl, useHandleLibrary } from "../data/library";
+import _ from "lodash";
 
 polyfill();
 window.EXCALIDRAW_THROTTLE_RENDER = true;
@@ -289,8 +291,16 @@ const ExcalidrawWrapper = () => {
 
   (window as any).API = {
     excalidrawAPI,
+    collabAPI,
     state: () => excalidrawAPI?.getAppState(),
     elements: () => excalidrawAPI?.getSceneElements(),
+    redraw: () => {
+      excalidrawAPI?.updateScene({
+        elements: _.cloneDeep(excalidrawAPI?.getSceneElements()),
+      });
+    },
+    $: excalidrawAPI?.$,
+    version: () => getSceneVersion(excalidrawAPI?.getSceneElements() || []),
   };
 
   useEffect(() => {

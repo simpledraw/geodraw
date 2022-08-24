@@ -395,10 +395,7 @@ class App extends React.Component<AppProps, AppState> {
         setCursor: this.setCursor,
         resetCursor: this.resetCursor,
         $: (selector: string) =>
-          select(
-            selector,
-            this.getSceneElementsIncludingDeleted(),
-          ) as ExcalidrawElement[],
+          select(selector, this.getSceneElements()) as ExcalidrawElement[],
       } as const;
       if (typeof excalidrawRef === "function") {
         excalidrawRef(api);
