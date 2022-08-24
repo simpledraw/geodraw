@@ -24,7 +24,6 @@ import {
   Excalidraw,
   defaultLang,
   languages,
-  getSceneVersion,
 } from "../packages/excalidraw/index";
 import {
   AppState,
@@ -84,7 +83,8 @@ import { Provider, useAtom } from "jotai";
 import { jotaiStore, useAtomWithInitialValue } from "../jotai";
 import { reconcileElements } from "./collab/reconciliation";
 import { parseLibraryTokensFromUrl, useHandleLibrary } from "../data/library";
-import _ from "lodash";
+import { ScriptZone } from "../programmable/script_zone";
+import { setupGlobals } from "../programmable/globals";
 
 polyfill();
 window.EXCALIDRAW_THROTTLE_RENDER = true;
@@ -289,19 +289,7 @@ const ExcalidrawWrapper = () => {
     getInitialLibraryItems: getLibraryItemsFromStorage,
   });
 
-  (window as any).API = {
-    excalidrawAPI,
-    collabAPI,
-    state: () => excalidrawAPI?.getAppState(),
-    elements: () => excalidrawAPI?.getSceneElements(),
-    redraw: () => {
-      excalidrawAPI?.updateScene({
-        elements: _.cloneDeep(excalidrawAPI?.getSceneElements()),
-      });
-    },
-    $: excalidrawAPI?.$,
-    version: () => getSceneVersion(excalidrawAPI?.getSceneElements() || []),
-  };
+  setupGlobals(excalidrawAPI);
 
   useEffect(() => {
     if (!collabAPI || !excalidrawAPI) {
@@ -600,17 +588,7 @@ const ExcalidrawWrapper = () => {
         return null;
       }
 
-      return (
-        <div
-          style={{
-            width: isExcalidrawPlusSignedUser ? "21ch" : "23ch",
-            fontSize: "0.7em",
-            textAlign: "center",
-          }}
-        >
-          {isExcalidrawPlusSignedUser ? PlusAppLinkJSX : PlusLPLinkJSX}
-        </div>
-      );
+      return <ScriptZone />;
     },
     [],
   );
