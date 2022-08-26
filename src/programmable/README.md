@@ -5,21 +5,21 @@
 ```
 async function hide(clzs, ms) {
   for (const c of clzs) {
-    _$(`.${c}`).forEach((e) => (e.opacity = 0));
+    P._$(`.${c}`).forEach((e) => (e.opacity = 0));
   }
-  _update();
+  P._update();
   if (ms) {
-    await _sleep(ms);
+    await P._sleep(ms);
   }
 }
 
 async function show(clzs, ms) {
   for (const c of clzs) {
-    _$(`.${c}`).forEach((e) => (e.opacity = 80));
+    P._$(`.${c}`).forEach((e) => (e.opacity = 80));
   }
-  _update();
+  P._update();
   if (ms) {
-    await _sleep(ms);
+    await P._sleep(ms);
   }
 }
 async function shineShow(clzs, ms, times) {
@@ -46,7 +46,7 @@ const I18N = {
   },
 };
 async function i18n(lang) {
-  _$("text").forEach((e) => {
+  P._$("text").forEach((e) => {
     let txt = e.text;
     let starter = txt.indexOf("${");
     while (starter >= 0) {

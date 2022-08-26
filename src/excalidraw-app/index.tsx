@@ -289,7 +289,7 @@ const ExcalidrawWrapper = () => {
     getInitialLibraryItems: getLibraryItemsFromStorage,
   });
 
-  setupGlobals(excalidrawAPI);
+  (window as any).P = setupGlobals(excalidrawAPI);
 
   useEffect(() => {
     if (!collabAPI || !excalidrawAPI) {

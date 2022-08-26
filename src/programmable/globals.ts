@@ -8,33 +8,34 @@ const redraw = (excalidrawAPI?: ExcalidrawImperativeAPI | null) => {
 export const setupGlobals = (
   excalidrawAPI?: ExcalidrawImperativeAPI | null,
 ) => {
-  (window as any).__ = _;
-  (window as any)._$ = excalidrawAPI?.$;
-  (window as any)._print = (log: string) => {
+  const P: any = {};
+  P.__ = _;
+  P._$ = excalidrawAPI?.$;
+  P._print = (log: string) => {
     // eslint-disable-next-line no-console
     console.log(log);
-    const lst = (window as any).latest;
-    (window as any).latest = {
+    const lst = P.latest;
+    P.latest = {
       ...lst,
       log: `${lst.log}\r\n${log}`,
     };
-    const cb = (window as any)._callback;
+    const cb = P._callback;
     if (cb) {
       cb("log", log);
     }
   };
-  (window as any)._update = () => redraw(excalidrawAPI);
-  (window as any)._sleep = (ms: number) => {
+  P._update = () => redraw(excalidrawAPI);
+  P._sleep = (ms: number) => {
     return new Promise((r, j) => {
       setTimeout(r, ms);
     });
   };
-  (window as any)._state = () => excalidrawAPI?.getAppState();
-  (window as any)._elements = () => excalidrawAPI?.getSceneElements();
-  (window as any)._api = excalidrawAPI;
-  (window as any)._exec = async (js: string) => {
+  P._state = () => excalidrawAPI?.getAppState();
+  P._elements = () => excalidrawAPI?.getSceneElements();
+  P._api = excalidrawAPI;
+  P._exec = async (js: string) => {
     const thread = `${new Date().getTime()}`;
-    (window as any).latest = {
+    P.latest = {
       id: thread,
       log: "",
     };
@@ -48,4 +49,6 @@ export const setupGlobals = (
       elements: _.cloneDeep(excalidrawAPI?.getSceneElements()),
     });
   };
+
+  return P;
 };

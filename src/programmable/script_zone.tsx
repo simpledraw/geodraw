@@ -4,14 +4,10 @@ export const ScriptZone = () => {
   const [js, setJs] = useState<string>("_print('hello')");
   const [log, setLog] = useState<string>("");
 
-  // (window as any)._callback = (event: "log", msg: string) => {
-  //   setLog((window as any).latest?.log);
-  // };
-
   const exec = () => {
-    (window as any)._exec(js);
+    (window as any).P._exec(js);
     setTimeout(() => {
-      setLog((window as any).latest?.log);
+      setLog((window as any).P.latest?.log);
     }, 1000);
   };
 
