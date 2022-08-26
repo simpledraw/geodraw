@@ -1,6 +1,6 @@
 import { selectGroupsForSelectedElements } from "../groups";
-import { changeProperty, getFormValue } from "./actionProperties";
-import { register } from "./register";
+import { changeProperty, getFormValue } from "../actions/actionProperties";
+import { register } from "../actions/register";
 import { newElementWith } from "../element/mutateElement";
 import { ExcalidrawElement } from "../element/types";
 import { getNonDeletedElements, isTextElement } from "../element";
