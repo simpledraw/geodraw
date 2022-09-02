@@ -71,3 +71,22 @@ async function i18n(lang) {
   });
 }
 ```
+
+## event
+
+```
+P._listenMouseDownEvent('.tag', e => {
+  for(var i of P._$('.tag')) {
+    let o = 100 - i.opacity;
+    i.opacity = Math.abs(o);
+    setTimeout(() => {
+      i.opacity = Math.abs(100 - o);
+      P._update();
+    }, 1000);
+  }
+})
+
+P._listenMouseDownEvent('.tag', e => {
+  shineShow(['tag'], 1000, 2)
+});
+```

@@ -1,6 +1,12 @@
 import { useState } from "react";
+import { getDefaultAppState } from "../appState";
+import { ExcalidrawImperativeAPI } from "../types";
 
-export const ScriptZone = () => {
+export const ScriptZone = ({
+  excalidrawAPI,
+}: {
+  excalidrawAPI: ExcalidrawImperativeAPI | null;
+}) => {
   const [js, setJs] = useState<string>("_print('hello')");
   const [log, setLog] = useState<string>("");
 
@@ -9,6 +15,17 @@ export const ScriptZone = () => {
     setTimeout(() => {
       setLog((window as any).P.latest?.log);
     }, 1000);
+  };
+
+  const setReadonlyMode = () => {
+    const mode = !excalidrawAPI?.getAppState().viewModeEnabled;
+    excalidrawAPI?.updateScene({
+      appState: {
+        ...getDefaultAppState(),
+        viewModeEnabled: mode,
+      },
+      elements: excalidrawAPI.getSceneElementsIncludingDeleted(),
+    });
   };
 
   return (
@@ -25,6 +42,7 @@ export const ScriptZone = () => {
         onChange={({ target: { value } }) => setJs(value)}
       ></textarea>
       <button onClick={exec}>exec</button>
+      <button onClick={setReadonlyMode}>Readonly</button>
       <hr></hr>
       <span>{log}</span>
     </div>

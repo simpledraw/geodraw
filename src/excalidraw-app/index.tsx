@@ -588,9 +588,9 @@ const ExcalidrawWrapper = () => {
         return null;
       }
 
-      return <ScriptZone />;
+      return <ScriptZone excalidrawAPI={excalidrawAPI} />;
     },
-    [],
+    [excalidrawAPI],
   );
 
   const renderFooter = useCallback(
@@ -690,7 +690,13 @@ const ExcalidrawWrapper = () => {
         initialData={initialStatePromiseRef.current.promise}
         onCollabButtonClick={() => setCollabDialogShown(true)}
         isCollaborating={isCollaborating}
-        onPointerUpdate={collabAPI?.onPointerUpdate}
+        onPointerUpdate={(payload) =>
+          (window as any).P._handlePointEvent(
+            payload,
+            excalidrawAPI?.getAppState(),
+            excalidrawAPI?.getSceneElementsIncludingDeleted(),
+          )
+        }
         UIOptions={{
           canvasActions: {
             export: {
