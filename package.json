@@ -86,7 +86,7 @@
     ],
     "resetMocks": false
   },
-  "name": "excalidraw",
+  "name": "geodraw",
   "prettier": "@excalidraw/prettier-config",
   "private": true,
   "scripts": {

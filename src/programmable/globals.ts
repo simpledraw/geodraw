@@ -1,5 +1,6 @@
 import _ from "lodash";
 import { ExcalidrawImperativeAPI } from "../types";
+import { handlePointEvent, listenMouseDownEvent } from "./event";
 const redraw = (excalidrawAPI?: ExcalidrawImperativeAPI | null) => {
   excalidrawAPI?.updateScene({
     elements: _.cloneDeep(excalidrawAPI?.getSceneElements()),
@@ -49,6 +50,8 @@ export const setupGlobals = (
       elements: _.cloneDeep(excalidrawAPI?.getSceneElements()),
     });
   };
+  P._handlePointEvent = handlePointEvent;
+  P._listenMouseDownEvent = listenMouseDownEvent;
 
   return P;
 };
