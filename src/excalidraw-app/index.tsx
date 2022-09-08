@@ -160,16 +160,13 @@ const initializeScene = async (opts: {
       window.history.replaceState({}, APP_NAME, window.location.origin);
     }
   } else if (externalUrlMatch) {
-    window.history.replaceState({}, APP_NAME, window.location.origin);
+    // window.history.replaceState({}, APP_NAME, window.location.origin); // geomode: not change the url
 
     const url = externalUrlMatch[1];
     try {
       const request = await fetch(window.decodeURIComponent(url));
       const data = await loadFromBlob(await request.blob(), null, null);
-      if (
-        !scene.elements.length ||
-        window.confirm(t("alerts.loadSceneOverridePrompt"))
-      ) {
+      if (!scene.elements.length) {
         return { scene: data, isExternalScene };
       }
     } catch (error: any) {
@@ -367,8 +364,8 @@ const ExcalidrawWrapper = () => {
       initialStatePromiseRef.current.promise.resolve(data.scene);
     });
 
-    const onHashChange = async (event: HashChangeEvent) => {
-      event.preventDefault();
+    const onHashChange = async (event?: HashChangeEvent) => {
+      event?.preventDefault(); //geomode: possible no event
       const libraryUrlTokens = parseLibraryTokensFromUrl();
       if (!libraryUrlTokens) {
         if (
@@ -387,6 +384,11 @@ const ExcalidrawWrapper = () => {
               ...restore(data.scene, null, null),
               commitToHistory: true,
             });
+            // geomode: when load, scroll to content
+            setTimeout(() => {
+              excalidrawAPI.scrollToContent();
+            });
+            // (data as any).scrollToContent = true; // scroll to content when loading
           }
         });
       }
@@ -473,6 +475,7 @@ const ExcalidrawWrapper = () => {
     window.addEventListener(EVENT.BLUR, visibilityChange, false);
     document.addEventListener(EVENT.VISIBILITY_CHANGE, visibilityChange, false);
     window.addEventListener(EVENT.FOCUS, visibilityChange, false);
+    onHashChange(); // geodraw: update for initial url=xxx
     return () => {
       window.removeEventListener(EVENT.HASHCHANGE, onHashChange, false);
       window.removeEventListener(EVENT.UNLOAD, onUnload, false);
