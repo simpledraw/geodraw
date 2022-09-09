@@ -50,6 +50,7 @@ export type ActionName =
   | "pasteStyles"
   | "gridMode"
   | "zenMode"
+  | "geoMode"
   | "stats"
   | "changeStrokeColor"
   | "changeBackgroundColor"

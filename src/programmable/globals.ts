@@ -1,6 +1,10 @@
 import _ from "lodash";
 import { ExcalidrawImperativeAPI } from "../types";
 import { handlePointEvent, listenMouseDownEvent } from "./event";
+import { actionToggleZenMode } from "../actions";
+import { actionToggleGeoMode } from "./geomode";
+import { actionToggleViewMode } from "../actions/actionToggleViewMode";
+
 const redraw = (excalidrawAPI?: ExcalidrawImperativeAPI | null) => {
   excalidrawAPI?.updateScene({
     elements: _.cloneDeep(excalidrawAPI?.getSceneElements()),
@@ -52,6 +56,9 @@ export const setupGlobals = (
   };
   P._handlePointEvent = handlePointEvent;
   P._listenMouseDownEvent = listenMouseDownEvent;
+  P._zen = () => (window as any).executeAction(actionToggleZenMode);
+  P._geo = () => (window as any).executeAction(actionToggleGeoMode);
+  P._viewOnly = () => (window as any).executeAction(actionToggleViewMode);
 
   return P;
 };

@@ -85,6 +85,7 @@ import { reconcileElements } from "./collab/reconciliation";
 import { parseLibraryTokensFromUrl, useHandleLibrary } from "../data/library";
 import { ScriptZone } from "../programmable/script_zone";
 import { setupGlobals } from "../programmable/globals";
+import { parseBooleanFromUrl } from "../programmable/geomode";
 
 polyfill();
 window.EXCALIDRAW_THROTTLE_RENDER = true;
@@ -253,6 +254,10 @@ const ExcalidrawWrapper = () => {
     currentLangCode = currentLangCode[0];
   }
   const [langCode, setLangCode] = useState(currentLangCode);
+
+  const [geoMode, setGeoMode] = useState<boolean>(); // geomode
+  const [zenMode, setZenMode] = useState<boolean>();
+
   // initial state
   // ---------------------------------------------------------------------------
 
@@ -365,6 +370,16 @@ const ExcalidrawWrapper = () => {
     });
 
     const onHashChange = async (event?: HashChangeEvent) => {
+      // hande geomode
+      const isGeoMode = parseBooleanFromUrl();
+      if (isGeoMode !== undefined) {
+        setGeoMode(isGeoMode);
+      }
+      const isZenMode = parseBooleanFromUrl("zenmode");
+      if (isZenMode !== undefined) {
+        setZenMode(isZenMode);
+      }
+
       event?.preventDefault(); //geomode: possible no event
       const libraryUrlTokens = parseLibraryTokensFromUrl();
       if (!libraryUrlTokens) {
@@ -731,6 +746,8 @@ const ExcalidrawWrapper = () => {
         handleKeyboardGlobally={true}
         onLibraryChange={onLibraryChange}
         autoFocus={true}
+        geoModeEnabled={geoMode}
+        zenModeEnabled={zenMode}
       />
       {excalidrawAPI && <Collab excalidrawAPI={excalidrawAPI} />}
       {errorMessage && (
