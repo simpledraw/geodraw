@@ -9,6 +9,7 @@ export const getReactNativeWebView = () => {
 export enum RN_ACTIONS {
   EXPORT = "export",
   OPEN_DEBUG_VIEW = "open-debug-view",
+  PRESS_BUTTON = "press-button",
   LOG = "log",
   PONG = "pong",
   CHNAGE_BG_COLOR = "change-bg-color",
@@ -36,6 +37,13 @@ export const openDebugView = () => {
   getReactNativeWebView().postMessage(
     JSON.stringify({ type: RN_ACTIONS.OPEN_DEBUG_VIEW }),
   );
+};
+export const pressButton = (name: string) => {
+  if (getReactNativeWebView()) {
+    getReactNativeWebView().postMessage(
+      JSON.stringify({ type: RN_ACTIONS.PRESS_BUTTON, name }),
+    );
+  }
 };
 export const logToRn = (level: any, msg: string, data: any) => {
   getReactNativeWebView().postMessage(

@@ -86,6 +86,7 @@ import { parseLibraryTokensFromUrl, useHandleLibrary } from "../data/library";
 import { ScriptZone } from "../programmable/script_zone";
 import { setupGlobals } from "../programmable/globals";
 import { parseBooleanFromUrl } from "../programmable/geomode";
+import { getReactNativeWebView, pressButton } from "../programmable/rn";
 
 polyfill();
 window.EXCALIDRAW_THROTTLE_RENDER = true;
@@ -224,15 +225,18 @@ const initializeScene = async (opts: {
 
 const PlusLPLinkJSX = (
   <p style={{ direction: "ltr", unicodeBidi: "embed" }}>
-    Introducing Excalidraw+
-    <br />
-    <a
-      href="https://plus.excalidraw.com/plus?utm_source=excalidraw&utm_medium=banner&utm_campaign=launch"
-      target="_blank"
-      rel="noreferrer"
+    <button
+      onClick={() => {
+        const BTN_NAME = "OPEN_ANSWER";
+        if (getReactNativeWebView()) {
+          pressButton(BTN_NAME);
+        } else {
+          alert(`try in RN env to fire ${BTN_NAME}`);
+        }
+      }}
     >
-      Try out now!
-    </a>
+      Open Answer
+    </button>
   </p>
 );
 
