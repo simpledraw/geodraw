@@ -10,7 +10,7 @@ const redraw = (excalidrawAPI?: ExcalidrawImperativeAPI | null) => {
     elements: _.cloneDeep(excalidrawAPI?.getSceneElements()),
   });
 };
-export const setupGlobals = (
+export const setupProgrammable = (
   excalidrawAPI?: ExcalidrawImperativeAPI | null,
 ) => {
   const P: any = {};

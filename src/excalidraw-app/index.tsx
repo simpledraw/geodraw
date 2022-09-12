@@ -49,7 +49,6 @@ import {
 import Collab, {
   CollabAPI,
   collabAPIAtom,
-  collabDialogShownAtom,
   isCollaboratingAtom,
 } from "./collab/Collab";
 import { LanguageList } from "./components/LanguageList";
@@ -84,7 +83,7 @@ import { jotaiStore, useAtomWithInitialValue } from "../jotai";
 import { reconcileElements } from "./collab/reconciliation";
 import { parseLibraryTokensFromUrl, useHandleLibrary } from "../data/library";
 import { ScriptZone } from "../programmable/script_zone";
-import { setupGlobals } from "../programmable/globals";
+import { setupProgrammable } from "../programmable/globals";
 import { parseBooleanFromUrl } from "../programmable/geomode";
 import { getReactNativeWebView, pressButton } from "../programmable/rn";
 
@@ -285,7 +284,6 @@ const ExcalidrawWrapper = () => {
     useCallbackRefState<ExcalidrawImperativeAPI>();
 
   const [collabAPI] = useAtom(collabAPIAtom);
-  const [, setCollabDialogShown] = useAtom(collabDialogShownAtom);
   const [isCollaborating] = useAtomWithInitialValue(isCollaboratingAtom, () => {
     return isCollaborationLink(window.location.href);
   });
@@ -295,7 +293,7 @@ const ExcalidrawWrapper = () => {
     getInitialLibraryItems: getLibraryItemsFromStorage,
   });
 
-  (window as any).P = setupGlobals(excalidrawAPI);
+  (window as any).P = setupProgrammable(excalidrawAPI);
 
   useEffect(() => {
     if (!collabAPI || !excalidrawAPI) {
@@ -710,7 +708,6 @@ const ExcalidrawWrapper = () => {
         ref={excalidrawRefCallback}
         onChange={onChange}
         initialData={initialStatePromiseRef.current.promise}
-        onCollabButtonClick={() => setCollabDialogShown(true)}
         isCollaborating={isCollaborating}
         onPointerUpdate={(payload) =>
           (window as any).P._handlePointEvent(
