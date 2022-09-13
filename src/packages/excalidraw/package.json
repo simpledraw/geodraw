@@ -1,6 +1,6 @@
 {
   "name": "@simpledraw/geodraw",
-  "version": "0.1.74",
+  "version": "0.1.75",
   "main": "main.js",
   "types": "types/packages/excalidraw/index.d.ts",
   "files": [
