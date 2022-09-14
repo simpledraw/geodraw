@@ -1,7 +1,7 @@
 import _ from "lodash";
 import { ExcalidrawImperativeAPI } from "../types";
 import { handlePointEvent, listenMouseDownEvent } from "./event";
-import { actionToggleZenMode } from "../actions";
+import { actionToggleZenMode, actionZoomToFit } from "../actions";
 import { actionToggleGeoMode } from "./geomode";
 import { actionToggleViewMode } from "../actions/actionToggleViewMode";
 
@@ -59,6 +59,7 @@ export const setupProgrammable = (
   P._zen = () => (window as any).executeAction(actionToggleZenMode);
   P._geo = () => (window as any).executeAction(actionToggleGeoMode);
   P._viewOnly = () => (window as any).executeAction(actionToggleViewMode);
+  P._center = () => (window as any).executeAction(actionZoomToFit);
 
   return P;
 };
