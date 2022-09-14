@@ -31,6 +31,8 @@ async function shineShow(clzs, ms, times) {
 }
 
 async function run() {
+  P._viewOnly();
+  P._center();
   await hide(["q1.5", "q1", "q2", "qa"], 3000);
 
   await show(["q1"], 3000);
@@ -38,7 +40,10 @@ async function run() {
   await show(["q2"], 3000);
 
   await shineShow(["qa"], 1000, 3);
+  P._viewOnly();
 }
+run();
+
 const I18N = {
   hello: {
     en: "hello",

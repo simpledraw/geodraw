@@ -1,7 +1,7 @@
 #!/bin/bash
 ## build and copy the site into ios
 target="../geoapp/ios/build"
-npm run build:ios
+yarn build:app
 
 function build_status()
 {

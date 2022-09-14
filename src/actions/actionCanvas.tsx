@@ -18,6 +18,7 @@ import { newElementWith } from "../element/mutateElement";
 import { getDefaultAppState, isEraserActive } from "../appState";
 import ClearCanvas from "../components/ClearCanvas";
 import clsx from "clsx";
+import { changeCanvasBgColor, getReactNativeWebView } from "../programmable/rn";
 
 export const actionChangeViewBackgroundColor = register({
   name: "changeViewBackgroundColor",
@@ -35,7 +36,15 @@ export const actionChangeViewBackgroundColor = register({
           label={t("labels.canvasBackground")}
           type="canvasBackground"
           color={appState.viewBackgroundColor}
-          onChange={(color) => updateData({ viewBackgroundColor: color })}
+          onChange={(color) => {
+            updateData({ viewBackgroundColor: color });
+
+            // RN
+            if (getReactNativeWebView()) {
+              // RN需要被告知颜色变化
+              changeCanvasBgColor(color);
+            }
+          }}
           isActive={appState.openPopup === "canvasColorPicker"}
           setActive={(active) =>
             updateData({ openPopup: active ? "canvasColorPicker" : null })

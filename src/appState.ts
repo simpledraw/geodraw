@@ -85,6 +85,7 @@ export const getDefaultAppState = (): Omit<
     toast: null,
     viewBackgroundColor: oc.white,
     zenModeEnabled: false,
+    geoModeEnabled: false,
     zoom: {
       value: 1 as NormalizedZoomValue,
     },
@@ -180,6 +181,7 @@ const APP_STATE_STORAGE_CONF = (<
   viewBackgroundColor: { browser: true, export: true, server: true },
   width: { browser: false, export: false, server: false },
   zenModeEnabled: { browser: true, export: false, server: false },
+  geoModeEnabled: { browser: true, export: false, server: false },
   zoom: { browser: true, export: false, server: false },
   viewModeEnabled: { browser: false, export: false, server: false },
   pendingImageElementId: { browser: false, export: false, server: false },

@@ -49,7 +49,6 @@ import {
 import Collab, {
   CollabAPI,
   collabAPIAtom,
-  collabDialogShownAtom,
   isCollaboratingAtom,
 } from "./collab/Collab";
 import { LanguageList } from "./components/LanguageList";
@@ -83,8 +82,8 @@ import { Provider, useAtom } from "jotai";
 import { jotaiStore, useAtomWithInitialValue } from "../jotai";
 import { reconcileElements } from "./collab/reconciliation";
 import { parseLibraryTokensFromUrl, useHandleLibrary } from "../data/library";
-import { ScriptZone } from "../programmable/script_zone";
-import { setupGlobals } from "../programmable/globals";
+import { parseBooleanFromUrl } from "../programmable/geomode";
+import { getReactNativeWebView, pressButton } from "../programmable/rn";
 
 polyfill();
 window.EXCALIDRAW_THROTTLE_RENDER = true;
@@ -98,6 +97,14 @@ languageDetector.init({
   languageUtils: {},
 });
 
+const parseValueFromHash = (key: string): string | null => {
+  let hash = window.location.hash;
+  if (hash.startsWith("#")) {
+    hash = hash.substring(1);
+  }
+  const params = new URLSearchParams(hash);
+  return params.get(key);
+};
 const initializeScene = async (opts: {
   collabAPI: CollabAPI;
   excalidrawAPI: ExcalidrawImperativeAPI;
@@ -160,16 +167,13 @@ const initializeScene = async (opts: {
       window.history.replaceState({}, APP_NAME, window.location.origin);
     }
   } else if (externalUrlMatch) {
-    window.history.replaceState({}, APP_NAME, window.location.origin);
+    // window.history.replaceState({}, APP_NAME, window.location.origin); // geomode: not change the url
 
     const url = externalUrlMatch[1];
     try {
       const request = await fetch(window.decodeURIComponent(url));
       const data = await loadFromBlob(await request.blob(), null, null);
-      if (
-        !scene.elements.length ||
-        window.confirm(t("alerts.loadSceneOverridePrompt"))
-      ) {
+      if (!scene.elements.length) {
         return { scene: data, isExternalScene };
       }
     } catch (error: any) {
@@ -226,15 +230,18 @@ const initializeScene = async (opts: {
 
 const PlusLPLinkJSX = (
   <p style={{ direction: "ltr", unicodeBidi: "embed" }}>
-    Introducing Excalidraw+
-    <br />
-    <a
-      href="https://plus.excalidraw.com/plus?utm_source=excalidraw&utm_medium=banner&utm_campaign=launch"
-      target="_blank"
-      rel="noreferrer"
+    <button
+      onClick={() => {
+        const BTN_NAME = "OPEN_ANSWER";
+        if (getReactNativeWebView()) {
+          pressButton(BTN_NAME);
+        } else {
+          alert(`try in RN env to fire ${BTN_NAME}`);
+        }
+      }}
     >
-      Try out now!
-    </a>
+      Open Answer
+    </button>
   </p>
 );
 
@@ -256,6 +263,10 @@ const ExcalidrawWrapper = () => {
     currentLangCode = currentLangCode[0];
   }
   const [langCode, setLangCode] = useState(currentLangCode);
+
+  const [geoMode, setGeoMode] = useState<boolean>(); // geomode
+  const [zenMode, setZenMode] = useState<boolean>();
+
   // initial state
   // ---------------------------------------------------------------------------
 
@@ -279,7 +290,6 @@ const ExcalidrawWrapper = () => {
     useCallbackRefState<ExcalidrawImperativeAPI>();
 
   const [collabAPI] = useAtom(collabAPIAtom);
-  const [, setCollabDialogShown] = useAtom(collabDialogShownAtom);
   const [isCollaborating] = useAtomWithInitialValue(isCollaboratingAtom, () => {
     return isCollaborationLink(window.location.href);
   });
@@ -288,8 +298,6 @@ const ExcalidrawWrapper = () => {
     excalidrawAPI,
     getInitialLibraryItems: getLibraryItemsFromStorage,
   });
-
-  (window as any).P = setupGlobals(excalidrawAPI);
 
   useEffect(() => {
     if (!collabAPI || !excalidrawAPI) {
@@ -362,13 +370,56 @@ const ExcalidrawWrapper = () => {
       }
     };
 
+    const loadScript = async (): Promise<string | undefined> => {
+      const jsUrl = parseValueFromHash("script");
+      if (!jsUrl) {
+        return;
+      }
+      try {
+        const resp = await fetch(jsUrl);
+        if (
+          resp.status !== 200 ||
+          resp.headers.get("content-type") !== "text/javascript"
+        ) {
+          throw new Error("not exist js");
+        }
+        const js = await resp.text();
+        return js;
+      } catch (err) {
+        console.warn(`invalid js script url ${jsUrl}`);
+      }
+    };
+
+    const evalScript = (js?: string) => {
+      if (js) {
+        try {
+          // eslint-disable-next-line no-eval
+          eval(js);
+        } catch (err) {
+          console.error(`fail to exec js ${js}`, err);
+        }
+      }
+    };
     initializeScene({ collabAPI, excalidrawAPI }).then(async (data) => {
       loadImages(data, /* isInitialLoad */ true);
+      // load the script
+      const js = await loadScript();
       initialStatePromiseRef.current.promise.resolve(data.scene);
+      evalScript(js);
     });
 
-    const onHashChange = async (event: HashChangeEvent) => {
-      event.preventDefault();
+    const onHashChange = async (event?: HashChangeEvent) => {
+      // hande geomode
+      const isGeoMode = parseBooleanFromUrl();
+      if (isGeoMode !== undefined) {
+        setGeoMode(isGeoMode);
+      }
+      const isZenMode = parseBooleanFromUrl("zenmode");
+      if (isZenMode !== undefined) {
+        setZenMode(isZenMode);
+      }
+
+      event?.preventDefault(); //geomode: possible no event
       const libraryUrlTokens = parseLibraryTokensFromUrl();
       if (!libraryUrlTokens) {
         if (
@@ -379,14 +430,19 @@ const ExcalidrawWrapper = () => {
         }
         excalidrawAPI.updateScene({ appState: { isLoading: true } });
 
-        initializeScene({ collabAPI, excalidrawAPI }).then((data) => {
+        initializeScene({ collabAPI, excalidrawAPI }).then(async (data) => {
           loadImages(data);
           if (data.scene) {
+            excalidrawAPI.updateScene({ appState: { isLoading: false } });
+            const js = await loadScript();
             excalidrawAPI.updateScene({
               ...data.scene,
               ...restore(data.scene, null, null),
               commitToHistory: true,
             });
+            excalidrawAPI.scrollToContent();
+
+            evalScript(js);
           }
         });
       }
@@ -473,6 +529,7 @@ const ExcalidrawWrapper = () => {
     window.addEventListener(EVENT.BLUR, visibilityChange, false);
     document.addEventListener(EVENT.VISIBILITY_CHANGE, visibilityChange, false);
     window.addEventListener(EVENT.FOCUS, visibilityChange, false);
+    onHashChange(); // geodraw: update for initial url=xxx
     return () => {
       window.removeEventListener(EVENT.HASHCHANGE, onHashChange, false);
       window.removeEventListener(EVENT.UNLOAD, onUnload, false);
@@ -588,9 +645,9 @@ const ExcalidrawWrapper = () => {
         return null;
       }
 
-      return <ScriptZone excalidrawAPI={excalidrawAPI} />;
+      return <div />;
     },
-    [excalidrawAPI],
+    [],
   );
 
   const renderFooter = useCallback(
@@ -688,7 +745,6 @@ const ExcalidrawWrapper = () => {
         ref={excalidrawRefCallback}
         onChange={onChange}
         initialData={initialStatePromiseRef.current.promise}
-        onCollabButtonClick={() => setCollabDialogShown(true)}
         isCollaborating={isCollaborating}
         onPointerUpdate={(payload) =>
           (window as any).P._handlePointEvent(
@@ -728,6 +784,8 @@ const ExcalidrawWrapper = () => {
         handleKeyboardGlobally={true}
         onLibraryChange={onLibraryChange}
         autoFocus={true}
+        geoModeEnabled={geoMode}
+        zenModeEnabled={zenMode}
       />
       {excalidrawAPI && <Collab excalidrawAPI={excalidrawAPI} />}
       {errorMessage && (

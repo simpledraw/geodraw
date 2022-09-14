@@ -148,6 +148,7 @@ export type AppState = {
   showHelpDialog: boolean;
   toast: { message: string; closable?: boolean; duration?: number } | null;
   zenModeEnabled: boolean;
+  geoModeEnabled: boolean;
   theme: Theme;
   gridSize: number | null;
   viewModeEnabled: boolean;
@@ -287,6 +288,7 @@ export interface ExcalidrawProps {
   viewModeEnabled?: boolean;
   zenModeEnabled?: boolean;
   gridModeEnabled?: boolean;
+  geoModeEnabled?: boolean;
   libraryReturnUrl?: string;
   theme?: Theme;
   name?: string;

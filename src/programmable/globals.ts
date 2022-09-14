@@ -1,12 +1,16 @@
 import _ from "lodash";
 import { ExcalidrawImperativeAPI } from "../types";
 import { handlePointEvent, listenMouseDownEvent } from "./event";
+import { actionToggleZenMode, actionZoomToFit } from "../actions";
+import { actionToggleGeoMode } from "./geomode";
+import { actionToggleViewMode } from "../actions/actionToggleViewMode";
+
 const redraw = (excalidrawAPI?: ExcalidrawImperativeAPI | null) => {
   excalidrawAPI?.updateScene({
     elements: _.cloneDeep(excalidrawAPI?.getSceneElements()),
   });
 };
-export const setupGlobals = (
+export const setupProgrammable = (
   excalidrawAPI?: ExcalidrawImperativeAPI | null,
 ) => {
   const P: any = {};
@@ -15,7 +19,7 @@ export const setupGlobals = (
   P._print = (log: string) => {
     // eslint-disable-next-line no-console
     console.log(log);
-    const lst = P.latest;
+    const lst = P.latest || {};
     P.latest = {
       ...lst,
       log: `${lst.log}\r\n${log}`,
@@ -52,6 +56,22 @@ export const setupGlobals = (
   };
   P._handlePointEvent = handlePointEvent;
   P._listenMouseDownEvent = listenMouseDownEvent;
+  P._zen = (open: boolean) => {
+    if (open && !P._state().zenModeEnabled) {
+      (window as any).executeAction(actionToggleZenMode);
+    } else if (!open && P._state().zenModeEnabled) {
+      (window as any).executeAction(actionToggleZenMode);
+    }
+  };
+  P._viewOnly = (open: boolean) => {
+    if (open && !P._state().viewModeEnabled) {
+      (window as any).executeAction(actionToggleViewMode);
+    } else if (!open && P._state().viewModeEnabled) {
+      (window as any).executeAction(actionToggleViewMode);
+    }
+  };
+  P._geo = () => (window as any).executeAction(actionToggleGeoMode);
+  P._center = () => (window as any).executeAction(actionZoomToFit);
 
   return P;
 };

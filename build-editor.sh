@@ -14,36 +14,64 @@ exit 1
 }
 
 cwd=$(dirname $0 && pwd)
+pub=0
 
-while getopts "b" option; do
+while getopts "p" option; do
     case ${option} in
-        b) build="1";;
+        p) pub="1";;
         *) usage;;
     esac
 done
 
+cd ${cwd}
+
 function build()
 {
-pushd
-cd src/packages/excalidraw
-yarn pack
+pushd .
+cd src/packages/excalidraw/
+rm -fr package/*1
+rm -fr  dist/*
+yarn build:umd
 popd
 }
 
-cd ${cwd}
-
-if [ "${build}" == "1" ];
-then
-build
-fi
-
-function copy_geoeditor()
+function publish()
 {
+pushd .
+cd src/packages/excalidraw/
+yarn publish
+popd
+}
+
+function copy_asset_geoeditor()
+{
+echo "cp dist to geo editor js folder ..."
 target="../geoeditor/public/js/"
 rm -fr ${target}
 mkdir -p ${target}
 cp -r src/packages/excalidraw/dist/* ${target}
 }
 
-copy_geoeditor
+function copy_node_module_geoeditor()
+{
+echo "cp dist to geo editor node_modules folder ..."
+target="../geoeditor/node_modules/@simpledraw/geodraw/dist"
+rm -fr ${target}
+mkdir -p ${target}
+cp -r src/packages/excalidraw/dist/* ${target}
+}
+
+echo "start build..."
+build
+
+if [ "${pub}" == "1" ];
+then
+echo "start publish..."
+publish
+else
+echo "no publish, just copy to geoeditor node_modules"
+copy_node_module_geoeditor
+fi
+
+copy_asset_geoeditor
 echo "done"
