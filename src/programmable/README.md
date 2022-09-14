@@ -32,6 +32,7 @@ async function shineShow(clzs, ms, times) {
 
 async function run() {
   P._viewOnly();
+  P._center();
   await hide(["q1.5", "q1", "q2", "qa"], 3000);
 
   await show(["q1"], 3000);

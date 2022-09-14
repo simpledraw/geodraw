@@ -56,9 +56,21 @@ export const setupProgrammable = (
   };
   P._handlePointEvent = handlePointEvent;
   P._listenMouseDownEvent = listenMouseDownEvent;
-  P._zen = () => (window as any).executeAction(actionToggleZenMode);
+  P._zen = (open: boolean) => {
+    if (open && !P._state().zenModeEnabled) {
+      (window as any).executeAction(actionToggleZenMode);
+    } else if (!open && P._state().zenModeEnabled) {
+      (window as any).executeAction(actionToggleZenMode);
+    }
+  };
+  P._viewOnly = (open: boolean) => {
+    if (open && !P._state().viewModeEnabled) {
+      (window as any).executeAction(actionToggleViewMode);
+    } else if (!open && P._state().viewModeEnabled) {
+      (window as any).executeAction(actionToggleViewMode);
+    }
+  };
   P._geo = () => (window as any).executeAction(actionToggleGeoMode);
-  P._viewOnly = () => (window as any).executeAction(actionToggleViewMode);
   P._center = () => (window as any).executeAction(actionZoomToFit);
 
   return P;
