@@ -19,7 +19,7 @@ export const setupProgrammable = (
   P._print = (log: string) => {
     // eslint-disable-next-line no-console
     console.log(log);
-    const lst = P.latest;
+    const lst = P.latest || {};
     P.latest = {
       ...lst,
       log: `${lst.log}\r\n${log}`,

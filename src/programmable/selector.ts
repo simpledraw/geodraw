@@ -11,6 +11,9 @@ export const isMatch = (selector: string, element: SelectableElement) => {
     return element.id === selector.substring(1);
   }
   if (selector.startsWith(".")) {
+    if (selector === ".*") {
+      return !element.className;
+    }
     return (element.className || "").split(" ").includes(selector.substring(1));
   }
   return element.type === selector;

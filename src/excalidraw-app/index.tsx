@@ -82,8 +82,6 @@ import { Provider, useAtom } from "jotai";
 import { jotaiStore, useAtomWithInitialValue } from "../jotai";
 import { reconcileElements } from "./collab/reconciliation";
 import { parseLibraryTokensFromUrl, useHandleLibrary } from "../data/library";
-import { ScriptZone } from "../programmable/script_zone";
-import { setupProgrammable } from "../programmable/globals";
 import { parseBooleanFromUrl } from "../programmable/geomode";
 import { getReactNativeWebView, pressButton } from "../programmable/rn";
 
@@ -99,6 +97,14 @@ languageDetector.init({
   languageUtils: {},
 });
 
+const parseValueFromHash = (key: string): string | null => {
+  let hash = window.location.hash;
+  if (hash.startsWith("#")) {
+    hash = hash.substring(1);
+  }
+  const params = new URLSearchParams(hash);
+  return params.get(key);
+};
 const initializeScene = async (opts: {
   collabAPI: CollabAPI;
   excalidrawAPI: ExcalidrawImperativeAPI;
@@ -293,8 +299,6 @@ const ExcalidrawWrapper = () => {
     getInitialLibraryItems: getLibraryItemsFromStorage,
   });
 
-  (window as any).P = setupProgrammable(excalidrawAPI);
-
   useEffect(() => {
     if (!collabAPI || !excalidrawAPI) {
       return;
@@ -366,9 +370,42 @@ const ExcalidrawWrapper = () => {
       }
     };
 
+    const loadScript = async (): Promise<string | undefined> => {
+      const jsUrl = parseValueFromHash("script");
+      if (!jsUrl) {
+        return;
+      }
+      try {
+        const resp = await fetch(jsUrl);
+        if (
+          resp.status !== 200 ||
+          resp.headers.get("content-type") !== "text/javascript"
+        ) {
+          throw new Error("not exist js");
+        }
+        const js = await resp.text();
+        return js;
+      } catch (err) {
+        console.warn(`invalid js script url ${jsUrl}`);
+      }
+    };
+
+    const evalScript = (js?: string) => {
+      if (js) {
+        try {
+          // eslint-disable-next-line no-eval
+          eval(js);
+        } catch (err) {
+          console.error(`fail to exec js ${js}`, err);
+        }
+      }
+    };
     initializeScene({ collabAPI, excalidrawAPI }).then(async (data) => {
       loadImages(data, /* isInitialLoad */ true);
+      // load the script
+      const js = await loadScript();
       initialStatePromiseRef.current.promise.resolve(data.scene);
+      evalScript(js);
     });
 
     const onHashChange = async (event?: HashChangeEvent) => {
@@ -393,19 +430,19 @@ const ExcalidrawWrapper = () => {
         }
         excalidrawAPI.updateScene({ appState: { isLoading: true } });
 
-        initializeScene({ collabAPI, excalidrawAPI }).then((data) => {
+        initializeScene({ collabAPI, excalidrawAPI }).then(async (data) => {
           loadImages(data);
           if (data.scene) {
+            excalidrawAPI.updateScene({ appState: { isLoading: false } });
+            const js = await loadScript();
             excalidrawAPI.updateScene({
               ...data.scene,
               ...restore(data.scene, null, null),
               commitToHistory: true,
             });
-            // geomode: when load, scroll to content
-            setTimeout(() => {
-              excalidrawAPI.scrollToContent();
-            });
-            // (data as any).scrollToContent = true; // scroll to content when loading
+            excalidrawAPI.scrollToContent();
+
+            evalScript(js);
           }
         });
       }
@@ -608,9 +645,9 @@ const ExcalidrawWrapper = () => {
         return null;
       }
 
-      return <ScriptZone excalidrawAPI={excalidrawAPI} />;
+      return <div />;
     },
-    [excalidrawAPI],
+    [],
   );
 
   const renderFooter = useCallback(

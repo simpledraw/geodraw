@@ -265,6 +265,7 @@ import {
 import { shouldShowBoundingBox } from "../element/transformHandles";
 import { select } from "../programmable/selector";
 import { actionToggleGeoMode } from "../programmable/geomode";
+import { setupProgrammable } from "../programmable/globals";
 
 const deviceContextInitialValue = {
   isSmScreen: false,
@@ -403,7 +404,8 @@ class App extends React.Component<AppProps, AppState> {
       } else {
         excalidrawRef.current = api;
       }
-      readyPromise.resolve(api);
+
+      (window as any).P = setupProgrammable(api);
     }
 
     this.excalidrawContainerValue = {
