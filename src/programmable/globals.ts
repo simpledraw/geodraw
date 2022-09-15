@@ -72,6 +72,14 @@ export const setupProgrammable = (
   };
   P._geo = () => (window as any).executeAction(actionToggleGeoMode);
   P._center = () => (window as any).executeAction(actionZoomToFit);
-
+  P._lockAll = () => {
+    const all = excalidrawAPI?.getSceneElements();
+    if (all) {
+      for (const e of all) {
+        (e as any).locked = true;
+      }
+    }
+    redraw(P._api);
+  };
   return P;
 };
