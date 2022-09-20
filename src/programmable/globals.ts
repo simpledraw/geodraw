@@ -1,13 +1,30 @@
 import _ from "lodash";
 import { ExcalidrawImperativeAPI } from "../types";
 import { handlePointEvent, listenMouseDownEvent } from "./event";
-import { actionToggleZenMode, actionZoomToFit } from "../actions";
+import { actionToggleZenMode } from "../actions";
 import { actionToggleGeoMode } from "./geomode";
 import { actionToggleViewMode } from "../actions/actionToggleViewMode";
+import { ImportedDataState } from "../data/types";
+import { restore } from "../data/restore";
+import { serializeAsJSON } from "../data/json";
+import { actionZoomToFitV2 } from "../actions/actionCanvas";
 
 const redraw = (excalidrawAPI?: ExcalidrawImperativeAPI | null) => {
   excalidrawAPI?.updateScene({
     elements: _.cloneDeep(excalidrawAPI?.getSceneElements()),
+  });
+};
+
+const load = (
+  scene: ImportedDataState,
+  excalidrawAPI?: ExcalidrawImperativeAPI | null,
+) => {
+  if (!excalidrawAPI) {
+    return;
+  }
+  excalidrawAPI.updateScene({
+    ...scene,
+    ...restore(scene, null, null),
   });
 };
 export const setupProgrammable = (
@@ -56,6 +73,12 @@ export const setupProgrammable = (
   };
   P._handlePointEvent = handlePointEvent;
   P._listenMouseDownEvent = listenMouseDownEvent;
+  P._toast = (msg: string, closable?: boolean) => {
+    excalidrawAPI?.setToast({
+      message: msg,
+      closable: closable === undefined ? false : closable,
+    });
+  };
   P._zen = (open: boolean) => {
     if (open && !P._state().zenModeEnabled) {
       (window as any).executeAction(actionToggleZenMode);
@@ -71,7 +94,7 @@ export const setupProgrammable = (
     }
   };
   P._geo = () => (window as any).executeAction(actionToggleGeoMode);
-  P._center = () => (window as any).executeAction(actionZoomToFit);
+  P._center = () => (window as any).executeAction(actionZoomToFitV2);
   P._lockAll = () => {
     const all = excalidrawAPI?.getSceneElements();
     if (all) {
@@ -80,6 +103,33 @@ export const setupProgrammable = (
       }
     }
     redraw(P._api);
+  };
+  P._classes = (): string[] => {
+    const all = excalidrawAPI?.getSceneElements() || [];
+    return _.uniq(
+      all
+        .map((e) => e.className)
+        .join(" ")
+        .split(" "),
+    ).filter((c) => !!c);
+  };
+  P._loadJSON = (json: any) => {
+    return load(json, excalidrawAPI);
+  };
+  P._loadUrlEncodedJSON = (ejson: string) => {
+    const obj = JSON.parse(decodeURIComponent(ejson));
+    return load(obj, excalidrawAPI);
+  };
+  P._dumpJSON = (): string | undefined => {
+    if (!excalidrawAPI) {
+      return;
+    }
+    return serializeAsJSON(
+      excalidrawAPI.getSceneElementsIncludingDeleted(),
+      excalidrawAPI.getAppState(),
+      excalidrawAPI.getFiles(),
+      "local",
+    );
   };
   return P;
 };
