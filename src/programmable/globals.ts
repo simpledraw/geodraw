@@ -27,6 +27,19 @@ const load = (
     ...restore(scene, null, null),
   });
 };
+
+interface State {
+  speed: number;
+  zero: number;
+  pausing: boolean;
+  timer: any;
+}
+const DefaultState: State = {
+  speed: 1.0,
+  zero: 0,
+  timer: null,
+  pausing: false,
+};
 export const setupProgrammable = (
   excalidrawAPI?: ExcalidrawImperativeAPI | null,
 ) => {
@@ -47,11 +60,6 @@ export const setupProgrammable = (
     }
   };
   P._update = () => redraw(excalidrawAPI);
-  P._sleep = (ms: number) => {
-    return new Promise((r, j) => {
-      setTimeout(r, ms);
-    });
-  };
   P._state = () => excalidrawAPI?.getAppState();
   P._elements = () => excalidrawAPI?.getSceneElements();
   P._api = excalidrawAPI;
@@ -131,5 +139,75 @@ export const setupProgrammable = (
       "local",
     );
   };
+
+  P._hide = async function (clzs: string[], ms: number) {
+    for (const c of clzs) {
+      P._$(`.${c}`).forEach((e: any) => (e.opacity = 0));
+    }
+    P._update();
+    if (ms) {
+      await P._sleep(ms);
+    }
+  };
+
+  P._show = async function show(clzs: string[], ms: number) {
+    for (const c of clzs) {
+      P._$(`.${c}`).forEach((e: any) => (e.opacity = 80));
+    }
+    P._update();
+    if (ms) {
+      await P._sleep(ms);
+    }
+  };
+  P._shine = async function (clzs: string[], ms: number, times: number) {
+    for (let i = 0; i < times; i++) {
+      await P._show(clzs, ms);
+      await P._hide(clzs, ms);
+    }
+    await P._show(clzs);
+  };
+
+  // start time travel
+  P._sleepNoPausing = async (ms: number) => {
+    await new Promise((r, j) => {
+      P.__data.timer = setTimeout(r, P._time(ms));
+    });
+  };
+  P._sleep = async (ms: number) => {
+    await P._sleepNoPausing(ms);
+    while (P.__data.pausing) {
+      await P._sleepNoPausing(1000);
+    }
+  };
+
+  P._time = (ms: number): number => {
+    return Math.max(P._speed() * ms + P.__data.zero || 0, 0);
+  };
+
+  /*
+   = 0 means skip immediately
+   = 1 (default) means normal
+   = 2 means very slow
+  */
+  P._speed = () => P.__data.speed;
+  P._setSpeed = (s: number) => (P.__data.speed = s);
+  P._done = () => P._setSpeed(0); // skip all sleep and show now
+  P.__data = _.cloneDeep(DefaultState);
+  P._pause = () => {
+    P.__data.pausing = true;
+  };
+  P._resume = () => {
+    const speed = P.__data.speed;
+    P._reset();
+    P.__data.speed = speed;
+  };
+  P._reset = () => {
+    // if (P.__data.timer) {
+    //   clearTimeout(P.__data.timer);
+    // }
+    P.__data = _.cloneDeep(DefaultState);
+  };
+  // end time travel
+
   return P;
 };
