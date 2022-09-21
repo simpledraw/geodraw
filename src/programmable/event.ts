@@ -16,6 +16,12 @@ export const listenMouseDownEvent = (
   }
 };
 
+export const removeAllListeners = () => {
+  for (const key of MOUSE_EVENT_MAP.keys()) {
+    delete MOUSE_EVENT_MAP[key];
+  }
+};
+
 export const handlePointEvent = (
   payload: {
     pointer: { x: number; y: number };
@@ -36,6 +42,10 @@ export const handlePointEvent = (
         const selector = selectors.find((selector) => isMatch(selector, e));
         if (selector && MOUSE_EVENT_MAP[selector]) {
           MOUSE_EVENT_MAP[selector](e);
+          // eslint-disable-next-line
+          console.log(
+            `DEBUG: click event ${payload.button} on selector ${selector} fired`,
+          );
           fired = true;
         }
       });
