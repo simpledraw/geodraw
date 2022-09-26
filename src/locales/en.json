@@ -122,7 +122,11 @@
       "unlockAll": "Unlock all"
     },
     "statusPublished": "Published",
-    "sidebarLock": "Keep sidebar open"
+    "sidebarLock": "Keep sidebar open",
+    "resetQuestion": "RESET PUZZLE",
+    "openAnswer": "OPEN ANSWER",
+    "stashAnswer": "SAVE STASH",
+    "loadStash": "LOAD STASH"
   },
   "library": {
     "noItems": "No items added yet...",
@@ -209,6 +213,8 @@
     "arrow": "Arrow",
     "line": "Line",
     "freedraw": "Draw",
+    "pause": "Pause",
+    "resume": "Resume",
     "text": "Text",
     "library": "Library",
     "lock": "Keep selected tool active after drawing",

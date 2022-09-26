@@ -38,10 +38,10 @@ export const openDebugView = () => {
     JSON.stringify({ type: RN_ACTIONS.OPEN_DEBUG_VIEW }),
   );
 };
-export const pressButton = (name: string) => {
+export const pressButton = (name: string, data?: any) => {
   if (getReactNativeWebView()) {
     getReactNativeWebView().postMessage(
-      JSON.stringify({ type: RN_ACTIONS.PRESS_BUTTON, name }),
+      JSON.stringify({ type: RN_ACTIONS.PRESS_BUTTON, name, data }),
     );
   }
 };
