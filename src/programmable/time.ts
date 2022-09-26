@@ -32,11 +32,20 @@ export const setupTime = (P: TimeApi): TimeApi => {
    = 2 means very slow
   */
   P._speed = () => P.__timeState.speed;
-  P._setSpeed = (s: number) => (P.__timeState.speed = s);
-  P._done = () => P._setSpeed(0); // skip all sleep and show now
+  P._setSpeed = (s: number) => {
+    P.__timeState.speed = s;
+    return P;
+  };
+
+  P._done = () => {
+    P._setSpeed(0); // skip all sleep and show now
+    return P;
+  };
+
   P.__timeState = _.cloneDeep(DefaultState);
   P._pause = () => {
     P.__timeState.pausing = true;
+    return P;
   };
   P._isPausing = () => {
     return P.__timeState.pausing;
@@ -45,9 +54,11 @@ export const setupTime = (P: TimeApi): TimeApi => {
     const speed = P.__timeState.speed;
     P._resetTime();
     P.__timeState.speed = speed;
+    return P;
   };
   P._resetTime = () => {
     P.__timeState = _.cloneDeep(DefaultState);
+    return P;
   };
   // end time travel
   return P;

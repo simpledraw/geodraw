@@ -316,6 +316,7 @@ const ExcalidrawWrapper = () => {
 
   const [geoMode, setGeoMode] = useState<boolean>(); // geomode
   const [zenMode, setZenMode] = useState<boolean>();
+  const [viewMode, setViewMode] = useState<boolean>();
 
   // initial state
   // ---------------------------------------------------------------------------
@@ -468,7 +469,10 @@ const ExcalidrawWrapper = () => {
       if (isZenMode !== undefined) {
         setZenMode(isZenMode);
       }
-
+      const isViewMode = parseBooleanFromUrl("viewmode");
+      if (isViewMode !== undefined) {
+        setViewMode(isViewMode);
+      }
       event?.preventDefault(); //geomode: possible no event
       const libraryUrlTokens = parseLibraryTokensFromUrl();
       if (!libraryUrlTokens) {
@@ -834,6 +838,7 @@ const ExcalidrawWrapper = () => {
         autoFocus={true}
         geoModeEnabled={geoMode}
         zenModeEnabled={zenMode}
+        viewModeEnabled={viewMode}
       />
       {excalidrawAPI && <Collab excalidrawAPI={excalidrawAPI} />}
       {errorMessage && (

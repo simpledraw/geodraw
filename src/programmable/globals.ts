@@ -47,11 +47,13 @@ export interface EventApi {
 export interface DrawApi {
   _state: Function;
   _elements: Function;
+  _resetScene: Function;
   _update: Function;
   _api?: ExcalidrawImperativeAPI | null;
   _toast: Function;
   _zen: Function;
   _geo: Function;
+  _prepareGeo: ({ message }: { message?: string }) => Promise<any>;
   _viewOnly: Function;
   _center: Function;
   _lockAll: Function;

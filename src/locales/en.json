@@ -213,6 +213,8 @@
     "arrow": "Arrow",
     "line": "Line",
     "freedraw": "Draw",
+    "pause": "Pause",
+    "resume": "Resume",
     "text": "Text",
     "library": "Library",
     "lock": "Keep selected tool active after drawing",

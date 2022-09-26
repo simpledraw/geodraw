@@ -29,17 +29,26 @@ const load = (
 };
 
 export const setupDraw = (
-  P: DrawApi,
+  P: DrawApi & TimeApi,
   excalidrawAPI: ExcalidrawImperativeAPI,
 ): DrawApi => {
-  P._update = () => redraw(excalidrawAPI);
+  P._update = () => {
+    redraw(excalidrawAPI);
+    return P;
+  };
+  P._resetScene = () => {
+    excalidrawAPI.resetScene();
+    return P;
+  };
   P._state = () => excalidrawAPI.getAppState();
   P._elements = () => excalidrawAPI.getSceneElements();
-  P._toast = (msg: string, closable?: boolean) => {
+  P._toast = (msg: string, closable?: boolean, duration?: number) => {
     excalidrawAPI?.setToast({
       message: msg,
+      duration,
       closable: closable === undefined ? false : closable,
     });
+    return P;
   };
   P._api = excalidrawAPI;
 
@@ -49,6 +58,7 @@ export const setupDraw = (
     } else if (!open && P._state().zenModeEnabled) {
       (window as any).executeAction(actionToggleZenMode);
     }
+    return P;
   };
   P._viewOnly = (open: boolean) => {
     if (open && !P._state().viewModeEnabled) {
@@ -56,9 +66,27 @@ export const setupDraw = (
     } else if (!open && P._state().viewModeEnabled) {
       (window as any).executeAction(actionToggleViewMode);
     }
+    return P;
   };
-  P._geo = () => (window as any).executeAction(actionToggleGeoMode);
-  P._center = () => (window as any).executeAction(actionZoomToFitV2);
+  P._geo = () => {
+    (window as any).executeAction(actionToggleGeoMode);
+    return P;
+  };
+  P._prepareGeo = async ({ message }: { message?: string }) => {
+    P._resetTime();
+    P._toast(message || "Welcome, Let's Start!", false, 1000);
+    await P._sleep(500);
+    P._viewOnly(true);
+    await P._sleep(500);
+    P._geo(true);
+    await P._sleep(500);
+    P._center();
+    return P;
+  };
+  P._center = () => {
+    (window as any).executeAction(actionZoomToFitV2);
+    return P;
+  };
   P._lockAll = () => {
     const all = excalidrawAPI?.getSceneElements();
     if (all) {
@@ -67,6 +95,7 @@ export const setupDraw = (
       }
     }
     redraw(P._api);
+    return P;
   };
   return P;
 };
@@ -83,11 +112,13 @@ export const setupExport = (
 ) => {
   // import and export api
   P._loadJSON = (json: any) => {
-    return load(json, excalidrawAPI);
+    load(json, excalidrawAPI);
+    return P;
   };
   P._loadUrlEncodedJSON = (ejson: string) => {
     const obj = JSON.parse(decodeURIComponent(ejson));
-    return load(obj, excalidrawAPI);
+    load(obj, excalidrawAPI);
+    return P;
   };
   P._dumpJSON = (): string | undefined => {
     if (!excalidrawAPI) {
@@ -119,6 +150,7 @@ export const setupEffect = (
     if (ms) {
       await P._sleep(ms);
     }
+    return P;
   };
 
   P._show = async function show(selectors: string | string[], ms: number) {
@@ -132,6 +164,7 @@ export const setupEffect = (
     if (ms) {
       await P._sleep(ms);
     }
+    return P;
   };
   P._shine = async function (clzs: string[], ms: number, times: number) {
     for (let i = 0; i < times; i++) {
@@ -139,6 +172,7 @@ export const setupEffect = (
       await P._hide(clzs, ms);
     }
     await P._show(clzs);
+    return P;
   };
   return P;
 };

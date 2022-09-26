@@ -18,6 +18,7 @@ import { UserList } from "./UserList";
 import { BackgroundPickerAndDarkModeToggle } from "./BackgroundPickerAndDarkModeToggle";
 import { LibraryButton } from "./LibraryButton";
 import { PenModeButton } from "./PenModeButton";
+import { getReactNativeWebView, pressButton } from "../programmable/rn";
 
 type MobileMenuProps = {
   appState: AppState;
@@ -88,17 +89,21 @@ export const MobileMenu = ({
                   </Stack.Row>
                 </Island>
                 {renderTopRightUI && renderTopRightUI(true, appState)}
-                <LockButton
-                  checked={appState.activeTool.locked}
-                  onChange={onLockToggle}
-                  title={t("toolBar.lock")}
-                  isMobile
-                />
-                <LibraryButton
-                  appState={appState}
-                  setAppState={setAppState}
-                  isMobile
-                />
+                {!appState.geoModeEnabled && (
+                  <LockButton
+                    checked={appState.activeTool.locked}
+                    onChange={onLockToggle}
+                    title={t("toolBar.lock")}
+                    isMobile
+                  />
+                )}
+                {!appState.geoModeEnabled && (
+                  <LibraryButton
+                    appState={appState}
+                    setAppState={setAppState}
+                    isMobile
+                  />
+                )}
                 <PenModeButton
                   checked={appState.penMode}
                   onChange={onPenModeToggle}
@@ -127,6 +132,24 @@ export const MobileMenu = ({
       return (
         <div className="App-toolbar-content">
           {actionManager.renderAction("toggleCanvasMenu")}
+          {appState.geoModeEnabled && (
+            <button
+              onClick={() => {
+                const BTN_NAME = (window as any).P._isPausing()
+                  ? "RESUME_BUTTON"
+                  : "PAUSE_BUTTON";
+                if (getReactNativeWebView()) {
+                  pressButton(BTN_NAME);
+                } else {
+                  alert(`try in RN env to fire ${BTN_NAME}`);
+                }
+              }}
+            >
+              {(window as any).P._isPausing()
+                ? t("toolBar.resume")
+                : t("toolBar.pause")}
+            </button>
+          )}
         </div>
       );
     }
