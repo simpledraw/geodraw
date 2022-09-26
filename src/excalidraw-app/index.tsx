@@ -24,6 +24,7 @@ import {
   Excalidraw,
   defaultLang,
   languages,
+  serializeAsJSON,
 } from "../packages/excalidraw/index";
 import {
   AppState,
@@ -65,8 +66,6 @@ import {
 } from "./data/localStorage";
 import CustomStats from "./CustomStats";
 import { restore, restoreAppState, RestoredDataState } from "../data/restore";
-import { Tooltip } from "../components/Tooltip";
-import { shield } from "../components/icons";
 
 import "./index.scss";
 import { ExportToExcalidrawPlus } from "./components/ExportToExcalidrawPlus";
@@ -227,22 +226,73 @@ const initializeScene = async (opts: {
   }
   return { scene: null, isExternalScene: false };
 };
-
-const PlusLPLinkJSX = (
-  <p style={{ direction: "ltr", unicodeBidi: "embed" }}>
-    <button
-      onClick={() => {
-        const BTN_NAME = "OPEN_ANSWER";
-        if (getReactNativeWebView()) {
-          pressButton(BTN_NAME);
-        } else {
-          alert(`try in RN env to fire ${BTN_NAME}`);
-        }
-      }}
-    >
-      Open Answer
-    </button>
-  </p>
+const renderResetQuestionBtn = () => (
+  <button
+    className="mobile-button"
+    onClick={() => {
+      const BTN_NAME = "RESET_QUESTION";
+      if (getReactNativeWebView()) {
+        pressButton(BTN_NAME);
+      } else {
+        alert(`try in RN env to fire ${BTN_NAME}`);
+      }
+    }}
+  >
+    {t("labels.resetQuestion")}
+  </button>
+);
+const renderOpenAnsweringBtn = () => (
+  <button
+    className="mobile-button"
+    onClick={() => {
+      const BTN_NAME = "OPEN_ANSWER";
+      if (getReactNativeWebView()) {
+        pressButton(BTN_NAME);
+      } else {
+        alert(`try in RN env to fire ${BTN_NAME}`);
+      }
+    }}
+  >
+    {t("labels.openAnswer")}
+  </button>
+);
+const renderSaveStashBtn = (excalidrawAPI: ExcalidrawImperativeAPI) => (
+  <button
+    className="mobile-button"
+    onClick={() => {
+      const BTN_NAME = "SAVE_STASH";
+      if (getReactNativeWebView()) {
+        pressButton(
+          BTN_NAME,
+          serializeAsJSON(
+            excalidrawAPI.getSceneElementsIncludingDeleted(),
+            excalidrawAPI.getAppState(),
+            excalidrawAPI.getFiles(),
+            "local",
+          ),
+        );
+      } else {
+        alert(`try in RN env to fire ${BTN_NAME}`);
+      }
+    }}
+  >
+    {t("labels.stashAnswer")}
+  </button>
+);
+const renderLoadStashBtn = () => (
+  <button
+    className="mobile-button"
+    onClick={() => {
+      const BTN_NAME = "LOAD_STASH";
+      if (getReactNativeWebView()) {
+        pressButton(BTN_NAME);
+      } else {
+        alert(`try in RN env to fire ${BTN_NAME}`);
+      }
+    }}
+  >
+    {t("labels.loadStash")}
+  </button>
 );
 
 const PlusAppLinkJSX = (
@@ -266,6 +316,7 @@ const ExcalidrawWrapper = () => {
 
   const [geoMode, setGeoMode] = useState<boolean>(); // geomode
   const [zenMode, setZenMode] = useState<boolean>();
+  const [viewMode, setViewMode] = useState<boolean>();
 
   // initial state
   // ---------------------------------------------------------------------------
@@ -418,7 +469,10 @@ const ExcalidrawWrapper = () => {
       if (isZenMode !== undefined) {
         setZenMode(isZenMode);
       }
-
+      const isViewMode = parseBooleanFromUrl("viewmode");
+      if (isViewMode !== undefined) {
+        setViewMode(isViewMode);
+      }
       event?.preventDefault(); //geomode: possible no event
       const libraryUrlTokens = parseLibraryTokensFromUrl();
       if (!libraryUrlTokens) {
@@ -652,20 +706,6 @@ const ExcalidrawWrapper = () => {
 
   const renderFooter = useCallback(
     (isMobile: boolean) => {
-      const renderEncryptedIcon = () => (
-        <a
-          className="encrypted-icon tooltip"
-          href="https://blog.excalidraw.com/end-to-end-encryption/"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={t("encrypted.link")}
-        >
-          <Tooltip label={t("encrypted.tooltip")} long={true}>
-            {shield}
-          </Tooltip>
-        </a>
-      );
-
       const renderLanguageList = () => (
         <LanguageList
           onChange={(langCode) => setLangCode(langCode)}
@@ -702,19 +742,31 @@ const ExcalidrawWrapper = () => {
                 borderRadius: 12,
               }}
             >
-              {isExcalidrawPlusSignedUser ? PlusAppLinkJSX : PlusLPLinkJSX}
+              {isExcalidrawPlusSignedUser ? (
+                PlusAppLinkJSX
+              ) : (
+                <p style={{ direction: "ltr", unicodeBidi: "embed" }}>
+                  {renderResetQuestionBtn()}
+                  {renderOpenAnsweringBtn()}
+                  {renderSaveStashBtn(excalidrawAPI!)}
+                  {renderLoadStashBtn()}
+                </p>
+              )}
             </div>
           </div>
         );
       }
       return (
         <>
-          {renderEncryptedIcon()}
+          {renderResetQuestionBtn()}
+          {renderOpenAnsweringBtn()}
+          {renderSaveStashBtn(excalidrawAPI!)}
+          {renderLoadStashBtn()}
           {renderLanguageList()}
         </>
       );
     },
-    [langCode],
+    [langCode, excalidrawAPI],
   );
 
   const renderCustomStats = () => {
@@ -786,6 +838,7 @@ const ExcalidrawWrapper = () => {
         autoFocus={true}
         geoModeEnabled={geoMode}
         zenModeEnabled={zenMode}
+        viewModeEnabled={viewMode}
       />
       {excalidrawAPI && <Collab excalidrawAPI={excalidrawAPI} />}
       {errorMessage && (

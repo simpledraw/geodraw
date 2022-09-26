@@ -3,6 +3,7 @@ interface SelectableElement {
   id: string;
   type: string;
 }
+
 export const isMatch = (selector: string, element: SelectableElement) => {
   if (selector === "*") {
     return true;

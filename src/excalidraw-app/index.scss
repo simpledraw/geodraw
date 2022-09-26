@@ -25,6 +25,10 @@
       height: 1.2rem;
     }
   }
+  .mobile-button {
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+  }
 }
 .excalidraw-app.is-collaborating {
   [data-testid="clear-canvas-button"] {

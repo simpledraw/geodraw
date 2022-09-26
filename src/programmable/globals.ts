@@ -1,85 +1,109 @@
-import _ from "lodash";
+import _, { LoDashStatic } from "lodash";
 import { ExcalidrawImperativeAPI } from "../types";
-import { handlePointEvent, listenMouseDownEvent } from "./event";
-import { actionToggleZenMode, actionZoomToFit } from "../actions";
-import { actionToggleGeoMode } from "./geomode";
-import { actionToggleViewMode } from "../actions/actionToggleViewMode";
+import {
+  handlePointEvent,
+  listenMouseDownEvent,
+  removeAllListeners,
+} from "./event";
+import { setupDraw, setupEffect, setupExport } from "./draw";
+import { setupTime } from "./time";
 
-const redraw = (excalidrawAPI?: ExcalidrawImperativeAPI | null) => {
-  excalidrawAPI?.updateScene({
-    elements: _.cloneDeep(excalidrawAPI?.getSceneElements()),
-  });
-};
+export interface VersionApi {
+  _version: () => string;
+}
+export interface EffectApi {
+  _hide: Function;
+  _show: Function;
+  _shine: Function;
+}
+export interface TimeState {
+  speed: number;
+  pausing: boolean;
+  timer: any;
+}
+export interface TimeApi {
+  _sleep: Function;
+  _time: Function;
+  _sleepNoPausing: Function;
+  __timeState: TimeState;
+  _speed: Function;
+  _setSpeed: Function;
+  _done: Function;
+  _pause: Function;
+  _resume: Function;
+  _resetTime: Function;
+  _isPausing: () => boolean;
+}
+export interface ElementApi {
+  __: LoDashStatic;
+  _$: Function;
+  _classes: Function;
+}
+export interface EventApi {
+  _handlePointEvent: Function;
+  _listenMouseDownEvent: Function;
+  _removeAllListeners: Function;
+}
+export interface DrawApi {
+  _state: Function;
+  _elements: Function;
+  _resetScene: Function;
+  _update: Function;
+  _api?: ExcalidrawImperativeAPI | null;
+  _toast: Function;
+  _zen: Function;
+  _geo: Function;
+  _prepareGeo: ({ message }: { message?: string }) => Promise<any>;
+  _viewOnly: Function;
+  _center: Function;
+  _lockAll: Function;
+}
+
+export interface ImportExportApi {
+  _dumpJSON: Function;
+  _loadJSON: Function;
+  _loadUrlEncodedJSON: Function;
+}
+
+export type ProgramableApi = VersionApi &
+  ElementApi &
+  TimeApi &
+  ImportExportApi &
+  EffectApi &
+  DrawApi &
+  EventApi;
+
 export const setupProgrammable = (
   excalidrawAPI?: ExcalidrawImperativeAPI | null,
-) => {
-  const P: any = {};
+): ProgramableApi | undefined => {
+  if (!excalidrawAPI) {
+    return;
+  }
+  let P: ProgramableApi = {} as any;
+
+  P._version = () => "1.0"; // version api
+
+  // basic element api: selector capibility
   P.__ = _;
   P._$ = excalidrawAPI?.$;
-  P._print = (log: string) => {
-    // eslint-disable-next-line no-console
-    console.log(log);
-    const lst = P.latest || {};
-    P.latest = {
-      ...lst,
-      log: `${lst.log}\r\n${log}`,
-    };
-    const cb = P._callback;
-    if (cb) {
-      cb("log", log);
-    }
+  P._classes = (): string[] => {
+    const all = excalidrawAPI?.getSceneElements() || [];
+    return _.uniq(
+      all
+        .map((e) => e.className)
+        .join(" ")
+        .split(" "),
+    ).filter((c) => !!c);
   };
-  P._update = () => redraw(excalidrawAPI);
-  P._sleep = (ms: number) => {
-    return new Promise((r, j) => {
-      setTimeout(r, ms);
-    });
-  };
-  P._state = () => excalidrawAPI?.getAppState();
-  P._elements = () => excalidrawAPI?.getSceneElements();
-  P._api = excalidrawAPI;
-  P._exec = async (js: string) => {
-    const thread = `${new Date().getTime()}`;
-    P.latest = {
-      id: thread,
-      log: "",
-    };
-    const func = `async function async_exec() {
-        ${js}
-      }
-      async_exec();`;
-    // eslint-disable-next-line no-eval
-    await eval(func);
-    excalidrawAPI?.updateScene({
-      elements: _.cloneDeep(excalidrawAPI?.getSceneElements()),
-    });
-  };
+
+  P = setupDraw(P, excalidrawAPI) as any;
+  P = setupExport(P, excalidrawAPI) as any; // import & export
+  P = setupTime(P) as any; // time api
+  P = setupEffect(P) as any; // effect api
+
+  // event api
   P._handlePointEvent = handlePointEvent;
   P._listenMouseDownEvent = listenMouseDownEvent;
-  P._zen = (open: boolean) => {
-    if (open && !P._state().zenModeEnabled) {
-      (window as any).executeAction(actionToggleZenMode);
-    } else if (!open && P._state().zenModeEnabled) {
-      (window as any).executeAction(actionToggleZenMode);
-    }
-  };
-  P._viewOnly = (open: boolean) => {
-    if (open && !P._state().viewModeEnabled) {
-      (window as any).executeAction(actionToggleViewMode);
-    } else if (!open && P._state().viewModeEnabled) {
-      (window as any).executeAction(actionToggleViewMode);
-    }
-  };
-  P._geo = () => (window as any).executeAction(actionToggleGeoMode);
-  P._center = () => (window as any).executeAction(actionZoomToFit);
-  P._lockAll = () => {
-    const all = excalidrawAPI?.getSceneElements();
-    if (all) {
-      for (const e of all) {
-        (e as any).locked = true;
-      }
-    }
-    redraw(P._api);
-  };
+  P._removeAllListeners = removeAllListeners;
   return P;
 };
