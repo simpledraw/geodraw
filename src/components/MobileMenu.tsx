@@ -179,7 +179,7 @@ export const MobileMenu = ({
         )}
         {actionManager.renderAction("deleteSelectedElements")}
         {appState.geoModeEnabled && renderSaveStashBtn(elements, appState)}
-        {appState.geoModeEnabled && renderLoadStashBtn()}
+        {appState.geoModeEnabled && renderLoadStashBtn(appState)}
       </div>
     );
   };

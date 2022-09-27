@@ -78,8 +78,8 @@ export const setupDraw = (
     P._toast(message || "Welcome, Let's Start!", false, 1000);
     await P._sleep(500);
     P._viewOnly(true);
-    await P._sleep(500);
-    P._geo(true);
+    // await P._sleep(500);
+    // P._geo(true);
     return P;
   };
   P._center = () => {

@@ -972,3 +972,117 @@ export const PlayIcon = React.memo(({ theme }: { theme: Theme }) =>
     { width: 48, height: 48 },
   ),
 );
+
+export const StashIcon = React.memo(({ theme }: { theme: Theme }) =>
+  createIcon(
+    <>
+      <path
+        d="M100.429 136.068C104.334 139.974 110.666 139.974 114.571 136.068L178.211 72.4288C182.116 68.5235 182.116 62.1919 178.211 58.2866C174.305 54.3814 167.974 54.3814 164.069 58.2866L107.5 114.855L50.9315 58.2866C47.0262 54.3814 40.6946 54.3814 36.7893 58.2866C32.8841 62.1919 32.8841 68.5235 36.7893 72.4288L100.429 136.068ZM97.5 0.997307V128.997H117.5V0.997307L97.5 0.997307Z"
+        fill="black"
+      />
+      <line
+        x1="0.997956"
+        y1="164"
+        x2="215.998"
+        y2="163.956"
+        stroke={iconFillColor(theme)}
+        strokeWidth="20"
+      />
+      <line
+        y1="-10"
+        x2="54.3847"
+        y2="-10"
+        transform="matrix(-0.393378 0.919377 -0.924514 -0.381149 22.3937 104)"
+        stroke={iconFillColor(theme)}
+        strokeWidth="20"
+      />
+      <path
+        d="M207.356 160L188 111"
+        stroke={iconFillColor(theme)}
+        strokeWidth="20"
+      />
+      <line
+        x1="11"
+        y1="174"
+        x2="11"
+        y2="217"
+        stroke={iconFillColor(theme)}
+        strokeWidth="20"
+      />
+      <line
+        x1="1"
+        y1="207"
+        x2="216"
+        y2="207"
+        stroke={iconFillColor(theme)}
+        strokeWidth="20"
+      />
+      <line
+        x1="207"
+        y1="174"
+        x2="207"
+        y2="217"
+        stroke={iconFillColor(theme)}
+        strokeWidth="20"
+      />
+    </>,
+    { width: 256, height: 256 },
+  ),
+);
+
+export const StashPopIcon = React.memo(({ theme }: { theme: Theme }) =>
+  createIcon(
+    <>
+      <path
+        d="M114.571 3.92625C110.666 0.0210037 104.334 0.0210037 100.429 3.92625L36.7893 67.5659C32.8841 71.4711 32.8841 77.8027 36.7893 81.708C40.6946 85.6132 47.0262 85.6132 50.9315 81.708L107.5 25.1395L164.069 81.708C167.974 85.6132 174.305 85.6132 178.211 81.708C182.116 77.8027 182.116 71.4711 178.211 67.5659L114.571 3.92625ZM117.5 138.997L117.5 10.9973H97.5L97.5 138.997H117.5Z"
+        fill={iconFillColor(theme)}
+      />
+      <line
+        x1="0.997956"
+        y1="163"
+        x2="215.998"
+        y2="162.956"
+        stroke={iconFillColor(theme)}
+        strokeWidth="20"
+      />
+      <line
+        y1="-10"
+        x2="54.3847"
+        y2="-10"
+        transform="matrix(-0.393378 0.919377 -0.924514 -0.381149 22.3937 103)"
+        stroke={iconFillColor(theme)}
+        strokeWidth="20"
+      />
+      <path
+        d="M207.356 159L188 110"
+        stroke={iconFillColor(theme)}
+        strokeWidth="20"
+      />
+      <line
+        x1="11"
+        y1="173"
+        x2="11"
+        y2="216"
+        stroke={iconFillColor(theme)}
+        strokeWidth="20"
+      />
+      <line
+        x1="1"
+        y1="206"
+        x2="216"
+        y2="206"
+        stroke={iconFillColor(theme)}
+        strokeWidth="20"
+      />
+      <line
+        x1="206"
+        y1="173"
+        x2="206"
+        y2="216"
+        stroke={iconFillColor(theme)}
+        strokeWidth="20"
+      />
+    </>,
+    { width: 256, height: 256 },
+  ),
+);

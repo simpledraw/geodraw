@@ -9,7 +9,7 @@ import { t } from "../i18n";
 import { getReactNativeWebView, pressButton } from "./rn";
 import { serializeAsJSON } from "../data/json";
 import { AppState } from "../types";
-import { load, save } from "../components/icons";
+import { StashIcon, StashPopIcon } from "../components/icons";
 import { ToolButton } from "../components/ToolButton";
 
 export const actionChangeClass = register({
@@ -114,7 +114,7 @@ export const renderSaveStashBtn = (
     type="button"
     title={t("buttons.saveStash")}
     aria-label={t("buttons.saveStash")}
-    icon={save}
+    icon={<StashIcon theme={appState.theme} />}
     onClick={() => {
       const BTN_NAME = "SAVE_STASH";
       if (getReactNativeWebView()) {
@@ -129,10 +129,10 @@ export const renderSaveStashBtn = (
   />
 );
 
-export const renderLoadStashBtn = () => (
+export const renderLoadStashBtn = (appState: AppState) => (
   <ToolButton
     type="button"
-    icon={load}
+    icon={<StashPopIcon theme={appState.theme} />}
     title={t("buttons.loadStash")}
     aria-label={t("buttons.loadStash")}
     onClick={() => {

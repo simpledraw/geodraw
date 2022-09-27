@@ -99,13 +99,15 @@ languageDetector.init({
   languageUtils: {},
 });
 
-const parseValueFromHash = (key: string): string | null => {
+const parseValueFromLocation = (key: string): string | null => {
   let hash = window.location.hash;
   if (hash.startsWith("#")) {
     hash = hash.substring(1);
   }
   const params = new URLSearchParams(hash);
-  return params.get(key);
+  return (
+    params.get(key) || new URLSearchParams(window.location.search).get(key)
+  );
 };
 const initializeScene = async (opts: {
   collabAPI: CollabAPI;
@@ -121,8 +123,7 @@ const initializeScene = async (opts: {
   const jsonBackendMatch = window.location.hash.match(
     /^#json=([a-zA-Z0-9_-]+),([a-zA-Z0-9_-]+)$/,
   );
-  const externalUrlMatch = window.location.hash.match(/^#url=(.*)$/);
-
+  const url = parseValueFromLocation("url");
   const localDataState = importFromLocalStorage();
 
   let scene: RestoredDataState & {
@@ -168,10 +169,9 @@ const initializeScene = async (opts: {
       roomLinkData = null;
       window.history.replaceState({}, APP_NAME, window.location.origin);
     }
-  } else if (externalUrlMatch) {
+  } else if (url) {
     // window.history.replaceState({}, APP_NAME, window.location.origin); // geomode: not change the url
 
-    const url = externalUrlMatch[1];
     try {
       const request = await fetch(window.decodeURIComponent(url));
       const data = await loadFromBlob(await request.blob(), null, null);
@@ -402,7 +402,7 @@ const ExcalidrawWrapper = () => {
     };
 
     const loadScript = async (): Promise<string | undefined> => {
-      const jsUrl = parseValueFromHash("script");
+      const jsUrl = parseValueFromLocation("script");
       if (!jsUrl) {
         return;
       }
@@ -441,16 +441,16 @@ const ExcalidrawWrapper = () => {
 
     const onHashChange = async (event?: HashChangeEvent) => {
       // hande geomode
-      const isGeoMode = parseBooleanFromUrl();
-      if (isGeoMode !== undefined) {
+      const isGeoMode = parseBooleanFromUrl("geomode");
+      if (["1", "true", 1, true].includes(isGeoMode as any)) {
         setGeoMode(isGeoMode);
       }
       const isZenMode = parseBooleanFromUrl("zenmode");
-      if (isZenMode !== undefined) {
+      if (["1", "true"].includes(isZenMode as any)) {
         setZenMode(isZenMode);
       }
       const isViewMode = parseBooleanFromUrl("viewmode");
-      if (isViewMode !== undefined) {
+      if (["1", "true"].includes(isViewMode as any)) {
         setViewMode(isViewMode);
       }
       event?.preventDefault(); //geomode: possible no event
@@ -744,7 +744,7 @@ const ExcalidrawWrapper = () => {
               excalidrawAPI.getSceneElements(),
               excalidrawAPI.getAppState(),
             )}
-          {renderLoadStashBtn()}
+          {excalidrawAPI && renderLoadStashBtn(excalidrawAPI.getAppState())}
           {renderOtherPuzzlesBtn()}
           {renderLanguageList()}
         </>
