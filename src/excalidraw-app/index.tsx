@@ -24,7 +24,6 @@ import {
   Excalidraw,
   defaultLang,
   languages,
-  serializeAsJSON,
 } from "../packages/excalidraw/index";
 import {
   AppState,
@@ -83,6 +82,10 @@ import { reconcileElements } from "./collab/reconciliation";
 import { parseLibraryTokensFromUrl, useHandleLibrary } from "../data/library";
 import { parseBooleanFromUrl } from "../programmable/geomode";
 import { getReactNativeWebView, pressButton } from "../programmable/rn";
+import {
+  renderLoadStashBtn,
+  renderSaveStashBtn,
+} from "../programmable/actionProgrammable";
 
 polyfill();
 window.EXCALIDRAW_THROTTLE_RENDER = true;
@@ -256,34 +259,11 @@ const renderOpenAnsweringBtn = () => (
     {t("labels.openAnswer")}
   </button>
 );
-const renderSaveStashBtn = (excalidrawAPI: ExcalidrawImperativeAPI) => (
+const renderOtherPuzzlesBtn = () => (
   <button
     className="mobile-button"
     onClick={() => {
-      const BTN_NAME = "SAVE_STASH";
-      if (getReactNativeWebView()) {
-        pressButton(
-          BTN_NAME,
-          serializeAsJSON(
-            excalidrawAPI.getSceneElementsIncludingDeleted(),
-            excalidrawAPI.getAppState(),
-            excalidrawAPI.getFiles(),
-            "local",
-          ),
-        );
-      } else {
-        alert(`try in RN env to fire ${BTN_NAME}`);
-      }
-    }}
-  >
-    {t("labels.stashAnswer")}
-  </button>
-);
-const renderLoadStashBtn = () => (
-  <button
-    className="mobile-button"
-    onClick={() => {
-      const BTN_NAME = "LOAD_STASH";
+      const BTN_NAME = "OPEN_OTHERS";
       if (getReactNativeWebView()) {
         pressButton(BTN_NAME);
       } else {
@@ -291,7 +271,7 @@ const renderLoadStashBtn = () => (
       }
     }}
   >
-    {t("labels.loadStash")}
+    {t("labels.openOthers")}
   </button>
 );
 
@@ -748,8 +728,7 @@ const ExcalidrawWrapper = () => {
                 <p style={{ direction: "ltr", unicodeBidi: "embed" }}>
                   {renderResetQuestionBtn()}
                   {renderOpenAnsweringBtn()}
-                  {renderSaveStashBtn(excalidrawAPI!)}
-                  {renderLoadStashBtn()}
+                  {renderOtherPuzzlesBtn()}
                 </p>
               )}
             </div>
@@ -760,8 +739,13 @@ const ExcalidrawWrapper = () => {
         <>
           {renderResetQuestionBtn()}
           {renderOpenAnsweringBtn()}
-          {renderSaveStashBtn(excalidrawAPI!)}
+          {excalidrawAPI &&
+            renderSaveStashBtn(
+              excalidrawAPI.getSceneElements(),
+              excalidrawAPI.getAppState(),
+            )}
           {renderLoadStashBtn()}
+          {renderOtherPuzzlesBtn()}
           {renderLanguageList()}
         </>
       );

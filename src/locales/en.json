@@ -125,8 +125,7 @@
     "sidebarLock": "Keep sidebar open",
     "resetQuestion": "RESET PUZZLE",
     "openAnswer": "OPEN ANSWER",
-    "stashAnswer": "SAVE STASH",
-    "loadStash": "LOAD STASH"
+    "openOthers": "OTHER PUZZLES"
   },
   "library": {
     "noItems": "No items added yet...",
@@ -171,7 +170,9 @@
     "remove": "Remove",
     "publishLibrary": "Publish",
     "submit": "Submit",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "saveStash": "SAVE STASH",
+    "loadStash": "LOAD STASH"
   },
   "alerts": {
     "clearReset": "This will clear the whole canvas. Are you sure?",

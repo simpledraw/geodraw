@@ -19,6 +19,12 @@ import { BackgroundPickerAndDarkModeToggle } from "./BackgroundPickerAndDarkMode
 import { LibraryButton } from "./LibraryButton";
 import { PenModeButton } from "./PenModeButton";
 import { getReactNativeWebView, pressButton } from "../programmable/rn";
+import {
+  renderLoadStashBtn,
+  renderSaveStashBtn,
+} from "../programmable/actionProgrammable";
+import { PauseIcon, PlayIcon } from "./icons";
+import { ToolButton } from "./ToolButton";
 
 type MobileMenuProps = {
   appState: AppState;
@@ -129,26 +135,31 @@ export const MobileMenu = ({
       getSelectedElements(elements, appState).length === 0;
 
     if (appState.viewModeEnabled) {
+      const isPausing = (window as any).P._isPausing();
+      const label = isPausing ? t("toolBar.resume") : t("toolBar.pause");
+      const BTN_NAME = isPausing ? "RESUME_BUTTON" : "PAUSE_BUTTON";
+      const icon = isPausing ? (
+        <PlayIcon theme={appState.theme} />
+      ) : (
+        <PauseIcon theme={appState.theme} />
+      );
       return (
         <div className="App-toolbar-content">
           {actionManager.renderAction("toggleCanvasMenu")}
           {appState.geoModeEnabled && (
-            <button
+            <ToolButton
+              type="button"
+              title={label}
+              aria-label={label}
+              icon={icon}
               onClick={() => {
-                const BTN_NAME = (window as any).P._isPausing()
-                  ? "RESUME_BUTTON"
-                  : "PAUSE_BUTTON";
                 if (getReactNativeWebView()) {
                   pressButton(BTN_NAME);
                 } else {
                   alert(`try in RN env to fire ${BTN_NAME}`);
                 }
               }}
-            >
-              {(window as any).P._isPausing()
-                ? t("toolBar.resume")
-                : t("toolBar.pause")}
-            </button>
+            />
           )}
         </div>
       );
@@ -167,6 +178,8 @@ export const MobileMenu = ({
           appState.multiElement ? "finalize" : "duplicateSelection",
         )}
         {actionManager.renderAction("deleteSelectedElements")}
+        {appState.geoModeEnabled && renderSaveStashBtn(elements, appState)}
+        {appState.geoModeEnabled && renderLoadStashBtn()}
       </div>
     );
   };

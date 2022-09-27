@@ -73,14 +73,13 @@ export const setupDraw = (
     return P;
   };
   P._prepareGeo = async ({ message }: { message?: string }) => {
+    P._center();
     P._resetTime();
     P._toast(message || "Welcome, Let's Start!", false, 1000);
     await P._sleep(500);
     P._viewOnly(true);
     await P._sleep(500);
     P._geo(true);
-    await P._sleep(500);
-    P._center();
     return P;
   };
   P._center = () => {

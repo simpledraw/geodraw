@@ -6,6 +6,11 @@ import { ExcalidrawElement } from "../element/types";
 import { getNonDeletedElements, isTextElement } from "../element";
 import { getSelectedElements } from "../scene";
 import { t } from "../i18n";
+import { getReactNativeWebView, pressButton } from "./rn";
+import { serializeAsJSON } from "../data/json";
+import { AppState } from "../types";
+import { load, save } from "../components/icons";
+import { ToolButton } from "../components/ToolButton";
 
 export const actionChangeClass = register({
   name: "changeClass",
@@ -100,3 +105,43 @@ export const actionChangeClass = register({
     </label>
   ),
 });
+
+export const renderSaveStashBtn = (
+  elements: readonly ExcalidrawElement[],
+  appState: AppState,
+) => (
+  <ToolButton
+    type="button"
+    title={t("buttons.saveStash")}
+    aria-label={t("buttons.saveStash")}
+    icon={save}
+    onClick={() => {
+      const BTN_NAME = "SAVE_STASH";
+      if (getReactNativeWebView()) {
+        pressButton(
+          BTN_NAME,
+          serializeAsJSON(elements, appState, null as any, "database"),
+        );
+      } else {
+        alert(`try in RN env to fire ${BTN_NAME}`);
+      }
+    }}
+  />
+);
+
+export const renderLoadStashBtn = () => (
+  <ToolButton
+    type="button"
+    icon={load}
+    title={t("buttons.loadStash")}
+    aria-label={t("buttons.loadStash")}
+    onClick={() => {
+      const BTN_NAME = "LOAD_STASH";
+      if (getReactNativeWebView()) {
+        pressButton(BTN_NAME);
+      } else {
+        alert(`try in RN env to fire ${BTN_NAME}`);
+      }
+    }}
+  />
+);
