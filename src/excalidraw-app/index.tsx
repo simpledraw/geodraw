@@ -81,7 +81,11 @@ import { jotaiStore, useAtomWithInitialValue } from "../jotai";
 import { reconcileElements } from "./collab/reconciliation";
 import { parseLibraryTokensFromUrl, useHandleLibrary } from "../data/library";
 import { parseBooleanFromUrl } from "../programmable/geomode";
-import { getReactNativeWebView, pressButton } from "../programmable/rn";
+import {
+  getReactNativeWebView,
+  logToRnAsNeed,
+  pressButton,
+} from "../programmable/rn";
 import {
   renderLoadStashBtn,
   renderSaveStashBtn,
@@ -417,17 +421,20 @@ const ExcalidrawWrapper = () => {
         const js = await resp.text();
         return js;
       } catch (err) {
-        console.warn(`invalid js script url ${jsUrl}`);
+        logToRnAsNeed(`invalid js script url ${jsUrl}`);
       }
     };
 
     const evalScript = (js?: string) => {
       if (js) {
         try {
+          if (getReactNativeWebView()) {
+            js = `${js}\ntrue`;
+          }
           // eslint-disable-next-line no-eval
           eval(js);
         } catch (err) {
-          console.error(`fail to exec js ${js}`, err);
+          logToRnAsNeed(`fail to exec js ${js}`, "error", err);
         }
       }
     };
@@ -442,15 +449,17 @@ const ExcalidrawWrapper = () => {
     const onHashChange = async (event?: HashChangeEvent) => {
       // hande geomode
       const isGeoMode = parseBooleanFromUrl("geomode");
-      if (["1", "true", 1, true].includes(isGeoMode as any)) {
-        setGeoMode(isGeoMode);
+      if (["true", 1, true].includes(isGeoMode as any)) {
+        setGeoMode(true);
+      } else {
+        setGeoMode(false);
       }
       const isZenMode = parseBooleanFromUrl("zenmode");
-      if (["1", "true"].includes(isZenMode as any)) {
-        setZenMode(isZenMode);
+      if (["1", "true", true].includes(isZenMode as any)) {
+        setZenMode(true);
       }
       const isViewMode = parseBooleanFromUrl("viewmode");
-      if (["1", "true"].includes(isViewMode as any)) {
+      if (["1", "true", true].includes(isViewMode as any)) {
         setViewMode(isViewMode);
       }
       event?.preventDefault(); //geomode: possible no event
@@ -577,6 +586,25 @@ const ExcalidrawWrapper = () => {
       clearTimeout(titleTimeout);
     };
   }, [collabAPI, excalidrawAPI]);
+
+  useEffect(() => {
+    if (excalidrawAPI) {
+      if (geoMode) {
+        logToRnAsNeed(`geomode start to reset the scene`);
+        excalidrawAPI.resetScene(); // geomode, reset the scene firstly
+      }
+      setTimeout(() => {
+        (window as any).P._geo(geoMode);
+        setTimeout(() => {
+          logToRnAsNeed(
+            `geomode ${geoMode} current mode ${
+              (window as any).P._state().geoModeEnabled
+            }`,
+          );
+        }, 500);
+      }, 500);
+    }
+  }, [excalidrawAPI, geoMode]);
 
   useEffect(() => {
     const unloadHandler = (event: BeforeUnloadEvent) => {

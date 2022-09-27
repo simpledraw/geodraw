@@ -1,14 +1,12 @@
 import { register } from "../actions/register";
 import { CODES, KEYS } from "../keys";
 
-export const parseBooleanFromUrl = (key?: string): boolean | undefined => {
-  const geomode =
-    // current
-    new URLSearchParams(window.location.hash.slice(1)).get(key || "geomode") ||
-    // legacy, kept for compat reasons
-    new URLSearchParams(window.location.search).get(key || "geomode");
+export const parseBooleanFromUrl = (key: string): boolean | undefined => {
+  const val =
+    new URLSearchParams((window.location.hash || "#").slice(1)).get(key) ||
+    new URLSearchParams(window.location.search).get(key);
 
-  return geomode ? ["1", "true"].includes(geomode) : undefined;
+  return val ? ["1", "true"].includes(val) || parseInt(val) >= 0 : undefined;
 };
 
 export const actionToggleGeoMode = register({

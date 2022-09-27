@@ -5,6 +5,19 @@ export const getReactNativeWebView = () => {
   return (window as any).ReactNativeWebView;
 };
 
+export const logToRnAsNeed = (
+  msg: string,
+  level?: "info" | "error",
+  data?: any,
+) => {
+  if (getReactNativeWebView()) {
+    logToRn(level || "info", msg, data);
+  } else {
+    // eslint-disable-next-line no-console
+    console.log(msg);
+  }
+};
+
 // share with RN apps project
 export enum RN_ACTIONS {
   EXPORT = "export",

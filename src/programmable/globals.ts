@@ -55,6 +55,7 @@ export interface DrawApi {
   _geo: Function;
   _prepareGeo: ({ message }: { message?: string }) => Promise<any>;
   _viewOnly: Function;
+  _closeMenu: Function;
   _center: Function;
   _lockAll: Function;
 }

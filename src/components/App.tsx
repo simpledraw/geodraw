@@ -627,7 +627,6 @@ class App extends React.Component<AppProps, AppState> {
 
         let viewModeEnabled = actionResult?.appState?.viewModeEnabled || false;
         let zenModeEnabled = actionResult?.appState?.zenModeEnabled || false;
-        let geoModeEnabled = actionResult?.appState?.geoModeEnabled || false;
         let gridSize = actionResult?.appState?.gridSize || null;
         let theme = actionResult?.appState?.theme || THEME.LIGHT;
         let name = actionResult?.appState?.name ?? this.state.name;
@@ -637,10 +636,6 @@ class App extends React.Component<AppProps, AppState> {
 
         if (typeof this.props.zenModeEnabled !== "undefined") {
           zenModeEnabled = this.props.zenModeEnabled;
-        }
-
-        if (typeof this.props.geoModeEnabled !== "undefined") {
-          geoModeEnabled = this.props.geoModeEnabled;
         }
 
         if (typeof this.props.gridModeEnabled !== "undefined") {
@@ -664,7 +659,6 @@ class App extends React.Component<AppProps, AppState> {
                 editingElement || actionResult.appState?.editingElement || null,
               viewModeEnabled,
               zenModeEnabled,
-              geoModeEnabled,
               gridSize,
               theme,
               name,
@@ -722,6 +716,7 @@ class App extends React.Component<AppProps, AppState> {
         ...getDefaultAppState(),
         isLoading: opts?.resetLoadingState ? false : state.isLoading,
         theme: this.state.theme,
+        geoModeEnabled: this.state.geoModeEnabled,
       }));
       this.resetHistory();
     },
@@ -1119,10 +1114,6 @@ class App extends React.Component<AppProps, AppState> {
 
     if (prevProps.zenModeEnabled !== this.props.zenModeEnabled) {
       this.setState({ zenModeEnabled: !!this.props.zenModeEnabled });
-    }
-
-    if (prevProps.geoModeEnabled !== this.props.geoModeEnabled) {
-      this.setState({ geoModeEnabled: !!this.props.geoModeEnabled });
     }
 
     if (prevProps.theme !== this.props.theme && this.props.theme) {
