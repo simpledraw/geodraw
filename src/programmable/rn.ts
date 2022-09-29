@@ -58,15 +58,15 @@ export const pressButton = (name: string, data?: any) => {
     );
   }
 };
-export const logToRn = (level: any, msg: string, data: any) => {
+export const logToRn = (level: any, msg: string, data?: any) => {
   getReactNativeWebView().postMessage(
     JSON.stringify({ type: RN_ACTIONS.LOG, level, msg, data }),
   );
 };
 // send ping message to RN
-export const pongToRn = (ping: string) => {
+export const pongToRn = (data: string) => {
   getReactNativeWebView().postMessage(
-    JSON.stringify({ type: RN_ACTIONS.PONG, ping }),
+    JSON.stringify({ type: RN_ACTIONS.PONG, data }),
   );
 };
 export const changeCanvasBgColor = (color: string) => {

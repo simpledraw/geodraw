@@ -80,11 +80,12 @@ import { Provider, useAtom } from "jotai";
 import { jotaiStore, useAtomWithInitialValue } from "../jotai";
 import { reconcileElements } from "./collab/reconciliation";
 import { parseLibraryTokensFromUrl, useHandleLibrary } from "../data/library";
-import { parseBooleanFromUrl } from "../programmable/geomode";
 import {
   getReactNativeWebView,
   logToRnAsNeed,
+  pongToRn,
   pressButton,
+  RN_ACTIONS,
 } from "../programmable/rn";
 import {
   renderLoadStashBtn,
@@ -298,9 +299,12 @@ const ExcalidrawWrapper = () => {
   }
   const [langCode, setLangCode] = useState(currentLangCode);
 
-  const [geoMode, setGeoMode] = useState<boolean>(); // geomode
-  const [zenMode, setZenMode] = useState<boolean>();
-  const [viewMode, setViewMode] = useState<boolean>();
+  // command with command id
+  const [geoMode, setGeoMode] = useState<string>();
+  const [zenMode, setZenMode] = useState<string>();
+  const [viewMode, setViewMode] = useState<string>();
+  const [resetCmd, setResetCmd] = useState<string>("");
+  const [centerCmd, setCenterCmd] = useState<string>("");
 
   // initial state
   // ---------------------------------------------------------------------------
@@ -408,7 +412,7 @@ const ExcalidrawWrapper = () => {
     const loadScript = async (): Promise<string | undefined> => {
       const jsUrl = parseValueFromLocation("script");
       if (!jsUrl) {
-        return;
+        return parseValueFromLocation("js") || undefined;
       }
       try {
         const resp = await fetch(jsUrl);
@@ -419,6 +423,9 @@ const ExcalidrawWrapper = () => {
           throw new Error("not exist js");
         }
         const js = await resp.text();
+        if (js.startsWith("<")) {
+          return;
+        }
         return js;
       } catch (err) {
         logToRnAsNeed(`invalid js script url ${jsUrl}`);
@@ -447,21 +454,13 @@ const ExcalidrawWrapper = () => {
     });
 
     const onHashChange = async (event?: HashChangeEvent) => {
-      // hande geomode
-      const isGeoMode = parseBooleanFromUrl("geomode");
-      if (["true", 1, true].includes(isGeoMode as any)) {
-        setGeoMode(true);
-      } else {
-        setGeoMode(false);
-      }
-      const isZenMode = parseBooleanFromUrl("zenmode");
-      if (["1", "true", true].includes(isZenMode as any)) {
-        setZenMode(true);
-      }
-      const isViewMode = parseBooleanFromUrl("viewmode");
-      if (["1", "true", true].includes(isViewMode as any)) {
-        setViewMode(isViewMode);
-      }
+      // hande command
+      setGeoMode(parseValueFromLocation("geomode") || "");
+      setZenMode(parseValueFromLocation("zenmode") || "");
+      setViewMode(parseValueFromLocation("viewmode") || "");
+      setCenterCmd(parseValueFromLocation("center") || "");
+      setResetCmd(parseValueFromLocation("reset") || "");
+
       event?.preventDefault(); //geomode: possible no event
       const libraryUrlTokens = parseLibraryTokensFromUrl();
       if (!libraryUrlTokens) {
@@ -588,23 +587,49 @@ const ExcalidrawWrapper = () => {
   }, [collabAPI, excalidrawAPI]);
 
   useEffect(() => {
-    if (excalidrawAPI) {
-      if (geoMode) {
-        logToRnAsNeed(`geomode start to reset the scene`);
-        excalidrawAPI.resetScene(); // geomode, reset the scene firstly
-      }
-      setTimeout(() => {
-        (window as any).P._geo(geoMode);
-        setTimeout(() => {
-          logToRnAsNeed(
-            `geomode ${geoMode} current mode ${
-              (window as any).P._state().geoModeEnabled
-            }`,
-          );
-        }, 500);
-      }, 500);
+    if (excalidrawAPI && geoMode) {
+      (window as any).P._geo(parseInt(geoMode) > 0);
     }
   }, [excalidrawAPI, geoMode]);
+  useEffect(() => {
+    if (excalidrawAPI && viewMode) {
+      (window as any).P._viewOnly(parseInt(viewMode) > 0);
+    }
+  }, [excalidrawAPI, viewMode]);
+  useEffect(() => {
+    if (excalidrawAPI && zenMode) {
+      (window as any).P._zen(parseInt(zenMode) > 0);
+    }
+  }, [excalidrawAPI, zenMode]);
+  useEffect(() => {
+    if (resetCmd && excalidrawAPI) {
+      if (parseInt(resetCmd) > 0) {
+        excalidrawAPI.resetScene();
+      }
+    }
+  }, [excalidrawAPI, resetCmd]);
+  useEffect(() => {
+    if (centerCmd && excalidrawAPI) {
+      if (parseInt(centerCmd) > 0) {
+        (window as any).P._center();
+      }
+    }
+  }, [excalidrawAPI, centerCmd]);
+
+  useEffect(() => {
+    document.addEventListener(
+      RN_ACTIONS.PONG,
+      (event: any) => {
+        const health = {
+          geoMode: (window as any).P._state().geoModeEnabled,
+        };
+        const data = JSON.stringify({ ping: event.data, ...health });
+        // logToRn("info", `sending the pong event back to RN: ${data}`);
+        pongToRn(data);
+      },
+      false,
+    );
+  }, []);
 
   useEffect(() => {
     const unloadHandler = (event: BeforeUnloadEvent) => {
@@ -848,9 +873,6 @@ const ExcalidrawWrapper = () => {
         handleKeyboardGlobally={true}
         onLibraryChange={onLibraryChange}
         autoFocus={true}
-        geoModeEnabled={geoMode}
-        zenModeEnabled={zenMode}
-        viewModeEnabled={viewMode}
       />
       {excalidrawAPI && <Collab excalidrawAPI={excalidrawAPI} />}
       {errorMessage && (

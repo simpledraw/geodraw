@@ -18,4 +18,9 @@ alert(window.location);
 window.location='http://localhost:10002/?geomode=1#url=https://sfo2.digitaloceanspaces.com/geodraw/puzzles/3/0.json';
 alert(P._state().geoModeEnabled);
 P._resetScene();
+
+location.hash='#geomode=1';1
+location='/?geomode=1';1
+location.hash='#reset=1';
+location.hash=`#center=${Math.random()}`;1
 ```
