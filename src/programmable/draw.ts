@@ -7,7 +7,11 @@ import {
   ElementApi,
 } from "./globals";
 import { ExcalidrawImperativeAPI } from "../types";
-import { actionToggleZenMode } from "../actions";
+import {
+  actionToggleCanvasMenu,
+  actionToggleEditMenu,
+  actionToggleZenMode,
+} from "../actions";
 import { actionToggleGeoMode } from "./geomode";
 import { actionToggleViewMode } from "../actions/actionToggleViewMode";
 import { actionZoomToFitV2 } from "../actions/actionCanvas";
@@ -68,23 +72,41 @@ export const setupDraw = (
     }
     return P;
   };
-  P._geo = () => {
-    (window as any).executeAction(actionToggleGeoMode);
+  P._geo = (open: boolean) => {
+    if (open && !P._state().geoModeEnabled) {
+      (window as any).executeAction(actionToggleGeoMode);
+    } else if (!open && P._state().geoModeEnabled) {
+      (window as any).executeAction(actionToggleGeoMode);
+    }
     return P;
   };
   P._prepareGeo = async ({ message }: { message?: string }) => {
+    await P._closeMenu();
+    P._center();
     P._resetTime();
     P._toast(message || "Welcome, Let's Start!", false, 1000);
     await P._sleep(500);
     P._viewOnly(true);
-    await P._sleep(500);
-    P._geo(true);
-    await P._sleep(500);
-    P._center();
+    if (!P._state().geoModeEnabled) {
+      await P._sleep(500);
+      P._geo(true);
+    }
     return P;
   };
   P._center = () => {
     (window as any).executeAction(actionZoomToFitV2);
+    return P;
+  };
+
+  P._closeMenu = async () => {
+    if (P._state().openMenu === "canvas") {
+      (window as any).executeAction(actionToggleCanvasMenu);
+      await P._sleep(500);
+    }
+    if (P._state().openMenu === "shape") {
+      (window as any).executeAction(actionToggleEditMenu);
+      await P._sleep(500);
+    }
     return P;
   };
   P._lockAll = () => {

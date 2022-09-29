@@ -5,6 +5,19 @@ export const getReactNativeWebView = () => {
   return (window as any).ReactNativeWebView;
 };
 
+export const logToRnAsNeed = (
+  msg: string,
+  level?: "info" | "error",
+  data?: any,
+) => {
+  if (getReactNativeWebView()) {
+    logToRn(level || "info", msg, data);
+  } else {
+    // eslint-disable-next-line no-console
+    console.log(msg);
+  }
+};
+
 // share with RN apps project
 export enum RN_ACTIONS {
   EXPORT = "export",
@@ -45,15 +58,15 @@ export const pressButton = (name: string, data?: any) => {
     );
   }
 };
-export const logToRn = (level: any, msg: string, data: any) => {
+export const logToRn = (level: any, msg: string, data?: any) => {
   getReactNativeWebView().postMessage(
     JSON.stringify({ type: RN_ACTIONS.LOG, level, msg, data }),
   );
 };
 // send ping message to RN
-export const pongToRn = (ping: string) => {
+export const pongToRn = (data: string) => {
   getReactNativeWebView().postMessage(
-    JSON.stringify({ type: RN_ACTIONS.PONG, ping }),
+    JSON.stringify({ type: RN_ACTIONS.PONG, data }),
   );
 };
 export const changeCanvasBgColor = (color: string) => {

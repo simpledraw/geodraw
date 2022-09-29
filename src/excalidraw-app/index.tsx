@@ -24,7 +24,6 @@ import {
   Excalidraw,
   defaultLang,
   languages,
-  serializeAsJSON,
 } from "../packages/excalidraw/index";
 import {
   AppState,
@@ -81,8 +80,17 @@ import { Provider, useAtom } from "jotai";
 import { jotaiStore, useAtomWithInitialValue } from "../jotai";
 import { reconcileElements } from "./collab/reconciliation";
 import { parseLibraryTokensFromUrl, useHandleLibrary } from "../data/library";
-import { parseBooleanFromUrl } from "../programmable/geomode";
-import { getReactNativeWebView, pressButton } from "../programmable/rn";
+import {
+  getReactNativeWebView,
+  logToRnAsNeed,
+  pongToRn,
+  pressButton,
+  RN_ACTIONS,
+} from "../programmable/rn";
+import {
+  renderLoadStashBtn,
+  renderSaveStashBtn,
+} from "../programmable/actionProgrammable";
 
 polyfill();
 window.EXCALIDRAW_THROTTLE_RENDER = true;
@@ -96,13 +104,15 @@ languageDetector.init({
   languageUtils: {},
 });
 
-const parseValueFromHash = (key: string): string | null => {
+const parseValueFromLocation = (key: string): string | null => {
   let hash = window.location.hash;
   if (hash.startsWith("#")) {
     hash = hash.substring(1);
   }
   const params = new URLSearchParams(hash);
-  return params.get(key);
+  return (
+    params.get(key) || new URLSearchParams(window.location.search).get(key)
+  );
 };
 const initializeScene = async (opts: {
   collabAPI: CollabAPI;
@@ -118,8 +128,7 @@ const initializeScene = async (opts: {
   const jsonBackendMatch = window.location.hash.match(
     /^#json=([a-zA-Z0-9_-]+),([a-zA-Z0-9_-]+)$/,
   );
-  const externalUrlMatch = window.location.hash.match(/^#url=(.*)$/);
-
+  const url = parseValueFromLocation("url");
   const localDataState = importFromLocalStorage();
 
   let scene: RestoredDataState & {
@@ -165,10 +174,9 @@ const initializeScene = async (opts: {
       roomLinkData = null;
       window.history.replaceState({}, APP_NAME, window.location.origin);
     }
-  } else if (externalUrlMatch) {
+  } else if (url) {
     // window.history.replaceState({}, APP_NAME, window.location.origin); // geomode: not change the url
 
-    const url = externalUrlMatch[1];
     try {
       const request = await fetch(window.decodeURIComponent(url));
       const data = await loadFromBlob(await request.blob(), null, null);
@@ -256,34 +264,11 @@ const renderOpenAnsweringBtn = () => (
     {t("labels.openAnswer")}
   </button>
 );
-const renderSaveStashBtn = (excalidrawAPI: ExcalidrawImperativeAPI) => (
+const renderOtherPuzzlesBtn = () => (
   <button
     className="mobile-button"
     onClick={() => {
-      const BTN_NAME = "SAVE_STASH";
-      if (getReactNativeWebView()) {
-        pressButton(
-          BTN_NAME,
-          serializeAsJSON(
-            excalidrawAPI.getSceneElementsIncludingDeleted(),
-            excalidrawAPI.getAppState(),
-            excalidrawAPI.getFiles(),
-            "local",
-          ),
-        );
-      } else {
-        alert(`try in RN env to fire ${BTN_NAME}`);
-      }
-    }}
-  >
-    {t("labels.stashAnswer")}
-  </button>
-);
-const renderLoadStashBtn = () => (
-  <button
-    className="mobile-button"
-    onClick={() => {
-      const BTN_NAME = "LOAD_STASH";
+      const BTN_NAME = "OPEN_OTHERS";
       if (getReactNativeWebView()) {
         pressButton(BTN_NAME);
       } else {
@@ -291,7 +276,7 @@ const renderLoadStashBtn = () => (
       }
     }}
   >
-    {t("labels.loadStash")}
+    {t("labels.openOthers")}
   </button>
 );
 
@@ -314,9 +299,12 @@ const ExcalidrawWrapper = () => {
   }
   const [langCode, setLangCode] = useState(currentLangCode);
 
-  const [geoMode, setGeoMode] = useState<boolean>(); // geomode
-  const [zenMode, setZenMode] = useState<boolean>();
-  const [viewMode, setViewMode] = useState<boolean>();
+  // command with command id
+  const [geoMode, setGeoMode] = useState<string>();
+  const [zenMode, setZenMode] = useState<string>();
+  const [viewMode, setViewMode] = useState<string>();
+  const [resetCmd, setResetCmd] = useState<string>("");
+  const [centerCmd, setCenterCmd] = useState<string>("");
 
   // initial state
   // ---------------------------------------------------------------------------
@@ -422,9 +410,9 @@ const ExcalidrawWrapper = () => {
     };
 
     const loadScript = async (): Promise<string | undefined> => {
-      const jsUrl = parseValueFromHash("script");
+      const jsUrl = parseValueFromLocation("script");
       if (!jsUrl) {
-        return;
+        return parseValueFromLocation("js") || undefined;
       }
       try {
         const resp = await fetch(jsUrl);
@@ -435,19 +423,25 @@ const ExcalidrawWrapper = () => {
           throw new Error("not exist js");
         }
         const js = await resp.text();
+        if (js.startsWith("<")) {
+          return;
+        }
         return js;
       } catch (err) {
-        console.warn(`invalid js script url ${jsUrl}`);
+        logToRnAsNeed(`invalid js script url ${jsUrl}`);
       }
     };
 
     const evalScript = (js?: string) => {
       if (js) {
         try {
+          if (getReactNativeWebView()) {
+            js = `${js}\ntrue`;
+          }
           // eslint-disable-next-line no-eval
           eval(js);
         } catch (err) {
-          console.error(`fail to exec js ${js}`, err);
+          logToRnAsNeed(`fail to exec js ${js}`, "error", err);
         }
       }
     };
@@ -460,19 +454,13 @@ const ExcalidrawWrapper = () => {
     });
 
     const onHashChange = async (event?: HashChangeEvent) => {
-      // hande geomode
-      const isGeoMode = parseBooleanFromUrl();
-      if (isGeoMode !== undefined) {
-        setGeoMode(isGeoMode);
-      }
-      const isZenMode = parseBooleanFromUrl("zenmode");
-      if (isZenMode !== undefined) {
-        setZenMode(isZenMode);
-      }
-      const isViewMode = parseBooleanFromUrl("viewmode");
-      if (isViewMode !== undefined) {
-        setViewMode(isViewMode);
-      }
+      // hande command
+      setGeoMode(parseValueFromLocation("geomode") || "");
+      setZenMode(parseValueFromLocation("zenmode") || "");
+      setViewMode(parseValueFromLocation("viewmode") || "");
+      setCenterCmd(parseValueFromLocation("center") || "");
+      setResetCmd(parseValueFromLocation("reset") || "");
+
       event?.preventDefault(); //geomode: possible no event
       const libraryUrlTokens = parseLibraryTokensFromUrl();
       if (!libraryUrlTokens) {
@@ -597,6 +585,51 @@ const ExcalidrawWrapper = () => {
       clearTimeout(titleTimeout);
     };
   }, [collabAPI, excalidrawAPI]);
+
+  useEffect(() => {
+    if (excalidrawAPI && geoMode) {
+      (window as any).P._geo(parseInt(geoMode) > 0);
+    }
+  }, [excalidrawAPI, geoMode]);
+  useEffect(() => {
+    if (excalidrawAPI && viewMode) {
+      (window as any).P._viewOnly(parseInt(viewMode) > 0);
+    }
+  }, [excalidrawAPI, viewMode]);
+  useEffect(() => {
+    if (excalidrawAPI && zenMode) {
+      (window as any).P._zen(parseInt(zenMode) > 0);
+    }
+  }, [excalidrawAPI, zenMode]);
+  useEffect(() => {
+    if (resetCmd && excalidrawAPI) {
+      if (parseInt(resetCmd) > 0) {
+        excalidrawAPI.resetScene();
+      }
+    }
+  }, [excalidrawAPI, resetCmd]);
+  useEffect(() => {
+    if (centerCmd && excalidrawAPI) {
+      if (parseInt(centerCmd) > 0) {
+        (window as any).P._center();
+      }
+    }
+  }, [excalidrawAPI, centerCmd]);
+
+  useEffect(() => {
+    document.addEventListener(
+      RN_ACTIONS.PONG,
+      (event: any) => {
+        const health = {
+          geoMode: (window as any).P._state().geoModeEnabled,
+        };
+        const data = JSON.stringify({ ping: event.data, ...health });
+        // logToRn("info", `sending the pong event back to RN: ${data}`);
+        pongToRn(data);
+      },
+      false,
+    );
+  }, []);
 
   useEffect(() => {
     const unloadHandler = (event: BeforeUnloadEvent) => {
@@ -748,8 +781,7 @@ const ExcalidrawWrapper = () => {
                 <p style={{ direction: "ltr", unicodeBidi: "embed" }}>
                   {renderResetQuestionBtn()}
                   {renderOpenAnsweringBtn()}
-                  {renderSaveStashBtn(excalidrawAPI!)}
-                  {renderLoadStashBtn()}
+                  {renderOtherPuzzlesBtn()}
                 </p>
               )}
             </div>
@@ -760,8 +792,13 @@ const ExcalidrawWrapper = () => {
         <>
           {renderResetQuestionBtn()}
           {renderOpenAnsweringBtn()}
-          {renderSaveStashBtn(excalidrawAPI!)}
-          {renderLoadStashBtn()}
+          {excalidrawAPI &&
+            renderSaveStashBtn(
+              excalidrawAPI.getSceneElements(),
+              excalidrawAPI.getAppState(),
+            )}
+          {excalidrawAPI && renderLoadStashBtn(excalidrawAPI.getAppState())}
+          {renderOtherPuzzlesBtn()}
           {renderLanguageList()}
         </>
       );
@@ -836,9 +873,6 @@ const ExcalidrawWrapper = () => {
         handleKeyboardGlobally={true}
         onLibraryChange={onLibraryChange}
         autoFocus={true}
-        geoModeEnabled={geoMode}
-        zenModeEnabled={zenMode}
-        viewModeEnabled={viewMode}
       />
       {excalidrawAPI && <Collab excalidrawAPI={excalidrawAPI} />}
       {errorMessage && (

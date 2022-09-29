@@ -10,6 +10,7 @@ import { setupTime } from "./time";
 
 export interface VersionApi {
   _version: () => string;
+  _cts: () => number;
 }
 export interface EffectApi {
   _hide: Function;
@@ -55,6 +56,7 @@ export interface DrawApi {
   _geo: Function;
   _prepareGeo: ({ message }: { message?: string }) => Promise<any>;
   _viewOnly: Function;
+  _closeMenu: Function;
   _center: Function;
   _lockAll: Function;
 }
@@ -79,10 +81,9 @@ export const setupProgrammable = (
   if (!excalidrawAPI) {
     return;
   }
-  let P: ProgramableApi = {} as any;
-
+  let P: ProgramableApi = { __ts: new Date() } as any;
+  P._cts = () => (P as any).__ts.getTime();
   P._version = () => "1.0"; // version api
-
   // basic element api: selector capibility
   P.__ = _;
   P._$ = excalidrawAPI?.$;
