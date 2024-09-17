@@ -18,6 +18,7 @@ import { newElementWith } from "../element/mutateElement";
 import { getDefaultAppState, isEraserActive } from "../appState";
 import ClearCanvas from "../components/ClearCanvas";
 import clsx from "clsx";
+import { changeCanvasBgColor, getReactNativeWebView } from "../programmable/rn";
 
 export const actionChangeViewBackgroundColor = register({
   name: "changeViewBackgroundColor",
@@ -35,7 +36,15 @@ export const actionChangeViewBackgroundColor = register({
           label={t("labels.canvasBackground")}
           type="canvasBackground"
           color={appState.viewBackgroundColor}
-          onChange={(color) => updateData({ viewBackgroundColor: color })}
+          onChange={(color) => {
+            updateData({ viewBackgroundColor: color });
+
+            // RN
+            if (getReactNativeWebView()) {
+              // RN需要被告知颜色变化
+              changeCanvasBgColor(color);
+            }
+          }}
           isActive={appState.openPopup === "canvasColorPicker"}
           setActive={(active) =>
             updateData({ openPopup: active ? "canvasColorPicker" : null })
@@ -196,6 +205,7 @@ export const actionResetZoom = register({
 const zoomValueToFitBoundsOnViewport = (
   bounds: [number, number, number, number],
   viewportDimensions: { width: number; height: number },
+  maxZoomValue?: number,
 ) => {
   const [x1, y1, x2, y2] = bounds;
   const commonBoundsWidth = x2 - x1;
@@ -207,7 +217,7 @@ const zoomValueToFitBoundsOnViewport = (
     Math.floor(smallestZoomValue / ZOOM_STEP) * ZOOM_STEP;
   const clampedZoomValueToFitElements = Math.min(
     Math.max(zoomAdjustedToSteps, ZOOM_STEP),
-    1,
+    maxZoomValue || 1,
   );
   return clampedZoomValueToFitElements as NormalizedZoomValue;
 };
@@ -216,9 +226,12 @@ const zoomToFitElements = (
   elements: readonly ExcalidrawElement[],
   appState: Readonly<AppState>,
   zoomToSelection: boolean,
+  padding?: { width: number; height: number },
+  maxZoomValue?: number,
 ) => {
   const nonDeletedElements = getNonDeletedElements(elements);
   const selectedElements = getSelectedElements(nonDeletedElements, appState);
+  padding = padding || { width: 0, height: 0 };
 
   const commonBounds =
     zoomToSelection && selectedElements.length > 0
@@ -226,10 +239,14 @@ const zoomToFitElements = (
       : getCommonBounds(nonDeletedElements);
 
   const newZoom = {
-    value: zoomValueToFitBoundsOnViewport(commonBounds, {
-      width: appState.width,
-      height: appState.height,
-    }),
+    value: zoomValueToFitBoundsOnViewport(
+      commonBounds,
+      {
+        width: appState.width - 2 * padding.width,
+        height: appState.height - 2 * padding.height,
+      },
+      maxZoomValue,
+    ),
   };
 
   const [x1, y1, x2, y2] = commonBounds;
@@ -267,6 +284,24 @@ export const actionZoomToFit = register({
   name: "zoomToFit",
   trackEvent: { category: "canvas" },
   perform: (elements, appState) => zoomToFitElements(elements, appState, false),
+  keyTest: (event) =>
+    event.code === CODES.ONE &&
+    event.shiftKey &&
+    !event.altKey &&
+    !event[KEYS.CTRL_OR_CMD],
+});
+
+export const actionZoomToFitV2 = register({
+  name: "zoomToFitV2",
+  trackEvent: { category: "canvas" },
+  perform: (elements, appState) =>
+    zoomToFitElements(
+      elements,
+      appState,
+      false,
+      { width: appState.width * 0.2, height: appState.height * 0.2 },
+      5,
+    ),
   keyTest: (event) =>
     event.code === CODES.ONE &&
     event.shiftKey &&

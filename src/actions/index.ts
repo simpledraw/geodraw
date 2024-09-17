@@ -19,6 +19,7 @@ export {
   actionChangeTextAlign,
   actionChangeVerticalAlign,
 } from "./actionProperties";
+export { actionChangeClass } from "../programmable/actionProgrammable";
 
 export {
   actionChangeViewBackgroundColor,

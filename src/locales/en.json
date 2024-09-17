@@ -27,6 +27,7 @@
     "strokeStyle_dotted": "Dotted",
     "sloppiness": "Sloppiness",
     "opacity": "Opacity",
+    "class": "Class Name",
     "textAlign": "Text align",
     "edges": "Edges",
     "sharp": "Sharp",
@@ -121,7 +122,10 @@
       "unlockAll": "Unlock all"
     },
     "statusPublished": "Published",
-    "sidebarLock": "Keep sidebar open"
+    "sidebarLock": "Keep sidebar open",
+    "resetQuestion": "RESET PUZZLE",
+    "openAnswer": "OPEN ANSWER",
+    "openOthers": "OTHER PUZZLES"
   },
   "library": {
     "noItems": "No items added yet...",
@@ -159,13 +163,16 @@
     "darkMode": "Dark mode",
     "lightMode": "Light mode",
     "zenMode": "Zen mode",
+    "geoMode": "Geo mode",
     "exitZenMode": "Exit zen mode",
     "cancel": "Cancel",
     "clear": "Clear",
     "remove": "Remove",
     "publishLibrary": "Publish",
     "submit": "Submit",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "saveStash": "SAVE STASH",
+    "loadStash": "LOAD STASH"
   },
   "alerts": {
     "clearReset": "This will clear the whole canvas. Are you sure?",
@@ -207,6 +214,8 @@
     "arrow": "Arrow",
     "line": "Line",
     "freedraw": "Draw",
+    "pause": "Pause",
+    "resume": "Resume",
     "text": "Text",
     "library": "Library",
     "lock": "Keep selected tool active after drawing",

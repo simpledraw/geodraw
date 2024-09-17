@@ -18,6 +18,13 @@ import { UserList } from "./UserList";
 import { BackgroundPickerAndDarkModeToggle } from "./BackgroundPickerAndDarkModeToggle";
 import { LibraryButton } from "./LibraryButton";
 import { PenModeButton } from "./PenModeButton";
+import { getReactNativeWebView, pressButton } from "../programmable/rn";
+import {
+  renderLoadStashBtn,
+  renderSaveStashBtn,
+} from "../programmable/actionProgrammable";
+import { PauseIcon, PlayIcon } from "./icons";
+import { ToolButton } from "./ToolButton";
 
 type MobileMenuProps = {
   appState: AppState;
@@ -88,17 +95,21 @@ export const MobileMenu = ({
                   </Stack.Row>
                 </Island>
                 {renderTopRightUI && renderTopRightUI(true, appState)}
-                <LockButton
-                  checked={appState.activeTool.locked}
-                  onChange={onLockToggle}
-                  title={t("toolBar.lock")}
-                  isMobile
-                />
-                <LibraryButton
-                  appState={appState}
-                  setAppState={setAppState}
-                  isMobile
-                />
+                {!appState.geoModeEnabled && (
+                  <LockButton
+                    checked={appState.activeTool.locked}
+                    onChange={onLockToggle}
+                    title={t("toolBar.lock")}
+                    isMobile
+                  />
+                )}
+                {!appState.geoModeEnabled && (
+                  <LibraryButton
+                    appState={appState}
+                    setAppState={setAppState}
+                    isMobile
+                  />
+                )}
                 <PenModeButton
                   checked={appState.penMode}
                   onChange={onPenModeToggle}
@@ -124,9 +135,32 @@ export const MobileMenu = ({
       getSelectedElements(elements, appState).length === 0;
 
     if (appState.viewModeEnabled) {
+      const isPausing = (window as any).P._isPausing();
+      const label = isPausing ? t("toolBar.resume") : t("toolBar.pause");
+      const BTN_NAME = isPausing ? "RESUME_BUTTON" : "PAUSE_BUTTON";
+      const icon = isPausing ? (
+        <PlayIcon theme={appState.theme} />
+      ) : (
+        <PauseIcon theme={appState.theme} />
+      );
       return (
         <div className="App-toolbar-content">
           {actionManager.renderAction("toggleCanvasMenu")}
+          {appState.geoModeEnabled && (
+            <ToolButton
+              type="button"
+              title={label}
+              aria-label={label}
+              icon={icon}
+              onClick={() => {
+                if (getReactNativeWebView()) {
+                  pressButton(BTN_NAME);
+                } else {
+                  alert(`try in RN env to fire ${BTN_NAME}`);
+                }
+              }}
+            />
+          )}
         </div>
       );
     }
@@ -144,6 +178,8 @@ export const MobileMenu = ({
           appState.multiElement ? "finalize" : "duplicateSelection",
         )}
         {actionManager.renderAction("deleteSelectedElements")}
+        {appState.geoModeEnabled && renderSaveStashBtn(elements, appState)}
+        {appState.geoModeEnabled && renderLoadStashBtn(appState)}
       </div>
     );
   };

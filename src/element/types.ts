@@ -56,6 +56,7 @@ type _ExcalidrawElementBase = Readonly<{
   updated: number;
   link: string | null;
   locked: boolean;
+  className: string;
 }>;
 
 export type ExcalidrawSelectionElement = _ExcalidrawElementBase & {
